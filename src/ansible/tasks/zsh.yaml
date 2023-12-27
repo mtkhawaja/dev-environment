@@ -1,0 +1,17 @@
+- name: "Install zsh"
+  become: true
+  package:
+    name: zsh
+    state: present
+
+- name: "Switch default shell to zsh"
+  become: true
+  shell: chsh -s $(which zsh)
+
+- name: "Install oh-my-zsh"
+  shell: curl -L https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh > ~/.oh-my-installer && chmod +x ~/.oh-my-installer && ~/.oh-my-installer
+
+- name: "Install zsh-autosuggestions plugin"
+  ansible.builtin.git:
+    repo: "https://github.com/zsh-users/zsh-autosuggestions.git"
+    dest: "~/.oh-my-zsh/plugins/zsh-autosuggestions"

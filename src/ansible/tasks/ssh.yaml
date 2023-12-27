@@ -1,0 +1,5 @@
+- name: "Install funtoo keychain"
+  become: true
+  package:
+    name: keychain
+    state: present
