@@ -11,7 +11,9 @@
         - install
         - core
   tasks:
-    - import_tasks: src/ansible/tasks/dotfiles.yaml
-    - import_tasks: src/ansible/tasks/install_utilities.yaml
+    - import_tasks: src/ansible/tasks/productivity_tools.yaml
     - import_tasks: src/ansible/tasks/ssh.yaml
     - import_tasks: src/ansible/tasks/zsh.yaml
+    # Run this last to ensure any changes to zshrc are applied
+    # See https://github.com/ohmyzsh/ohmyzsh/issues/4390 for more info
+    - import_tasks: src/ansible/tasks/dotfiles.yaml

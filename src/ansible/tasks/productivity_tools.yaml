@@ -1,0 +1,5 @@
+- name: "Install productivity tools"
+  become: true
+  package:
+    name: [ "tmux", "jq", "xclip", "tldr" ]
+    state: present

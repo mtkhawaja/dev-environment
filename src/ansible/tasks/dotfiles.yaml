@@ -11,3 +11,5 @@
     update: yes
     accept_hostkey: yes
     version: main
+- name: "Stow dotfiles"
+  shell: cd "$HOME/.dotfiles" && ./setup.sh
