@@ -1,0 +1,34 @@
+- name: "Install common CLI tools (tmux, jq, xclip, tldr, fzf, curl, htop, lsof, unzip, gettext)"
+  become: true
+  package:
+    name:
+      - "tmux"
+      - "jq"
+      - "xclip"
+      - "tldr"
+      - "fzf"
+      - "curl"
+      - "htop"
+      - "lsof"
+      - "unzip"
+      - "gettext"
+    state: present
+
+- name: "Install man pages"
+  package:
+    name:
+      - "man-db"
+      - "manpages-posix"
+    state: present
+
+- name: "Install build tools (build-essential, cmake, pkg-config, libpthread-stubs0-dev)"
+  become: true
+  package:
+    name:
+      - "build-essential"
+      - "cmake"
+      - "pkg-config"
+      - "libpthread-stubs0-dev"
+      - "lua5.1"
+      - "libtool"
+      - "libtool-bin"
