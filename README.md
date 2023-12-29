@@ -15,7 +15,7 @@ Run the [convenience script](./setup.sh) below to install Ansible and run the pl
 ```shell
 #!/usr/bin/env bash
 
-curl -s https://raw.githubusercontent.com/mtkhawaja/dotfiles/main/setup.sh | bash
+curl -s https://raw.githubusercontent.com/mtkhawaja/dev-environment/main/setup.sh | bash
 
 ```
 

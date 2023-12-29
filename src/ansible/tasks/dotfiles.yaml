@@ -13,3 +13,4 @@
     version: main
 - name: "Stow dotfiles"
   shell: cd "$HOME/.dotfiles" && ./setup.sh
+
