@@ -1,23 +1,16 @@
 - hosts: localhost
   connection: local
   pre_tasks:
-    - name: Update apt
-      become: true
-      apt:
-        force_apt_get: true
-        update_cache: true
-        state: present
-      tags:
-        - install
-        - core
+    - import_tasks: src/ansible/tasks/pre_tasks.yaml
   tasks:
     - import_tasks: src/ansible/tasks/tools.yaml
     - import_tasks: src/ansible/tasks/ssh.yaml
     - import_tasks: src/ansible/tasks/zsh.yaml
     - import_tasks: src/ansible/tasks/neovim.yaml
+    - import_tasks: src/ansible/tasks/java.yaml
     # Run this last to ensure any changes to zshrc are applied
     # See https://github.com/ohmyzsh/ohmyzsh/issues/4390 for more info
     - import_tasks: src/ansible/tasks/dotfiles.yaml
 
   post_tasks:
-    - import_tasks: src/ansible/tasks/other_tools.yaml
+    - import_tasks: src/ansible/tasks/post_install.yaml

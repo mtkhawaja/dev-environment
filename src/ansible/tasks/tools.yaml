@@ -1,4 +1,4 @@
-- name: "Install common CLI tools (tmux, jq, xclip, tldr, fzf, curl, htop, lsof, unzip, gettext, tofrodos)"
+- name: "Install common CLI tools (tmux, jq, xclip, tldr, fzf, curl, wget, htop, lsof, unzip, gettext, tofrodos ...)"
   become: true
   package:
     name:
@@ -8,11 +8,13 @@
       - "tldr"
       - "fzf"
       - "curl"
+      - "wget"
       - "htop"
       - "lsof"
       - "unzip"
       - "gettext"
       - "tofrodos"
+      - "neofetch"
     state: present
 
 - name: "Install man pages"

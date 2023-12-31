@@ -1,0 +1,5 @@
+- name: "Install BitWarden CLI"
+  shell: cd "$HOME/.dotfiles/bin/.local/bin/scripts/install" && ./bitwarden.sh
+
+- name: "Install Maven"
+  shell: cd "$HOME/.dotfiles/bin/.local/bin/scripts/install" && ./maven.sh
