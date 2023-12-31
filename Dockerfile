@@ -23,5 +23,5 @@ WORKDIR "/home/${USERNAME}"
 FROM setup AS runnable
 COPY . .
 RUN sh -c "ansible-playbook $TAGS local.yaml"
-CMD ["sh", "-c", "ansible-playbook $TAGS local.yaml"]
+ENTRYPOINT ["/bin/zsh"]
 

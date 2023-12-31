@@ -5,7 +5,7 @@
 ```bash
 #!/usr/bin/env bash
 
-docker build -t mtkhawaja/dot-files:latest . && docker run -it --rm mtkhawaja/dot-files:latest zsh
+docker build -t mtkhawaja/dot-files:latest . && docker run -it --rm mtkhawaja/dot-files:latest
 ```
 
 ## Setting up a new machine
