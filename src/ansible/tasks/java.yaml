@@ -5,8 +5,14 @@
 
 - name: "Configure the Eclipse Adoptium apt repository"
   become: true
-  shell: echo "deb [signed-by=/etc/apt/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" | tee /etc/apt/sources.list.d/adoptium.list && apt update
+  shell: echo "deb [signed-by=/etc/apt/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" | tee /etc/apt/sources.list.d/adoptium.list
 
+- name: "Update apt"
+  become: true
+  apt:
+    force_apt_get: true
+    update_cache: true
+    state: present
 
 - name: "Install Java 8, 17, 21"
   become: true

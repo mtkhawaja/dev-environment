@@ -33,7 +33,7 @@ sudo apt install ansible
 
 # Run the playbook
 
-ansible-pull -U https://github.com/mtkhawaja/dotfiles.git
+ansible-pull -U https://github.com/mtkhawaja/dev-environment.git -i localhost, local.yaml
 
 ```
 
