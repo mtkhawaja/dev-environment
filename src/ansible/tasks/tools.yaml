@@ -15,6 +15,7 @@
       - "gettext"
       - "tofrodos"
       - "neofetch"
+      - "rsync"
     state: present
 
 - name: "Install man pages"
