@@ -1,7 +1,7 @@
 # See: https://adoptium.net/installation/linux/
 - name: "Download the Eclipse Adoptium GPG key:"
   become: true
-  shell: wget -qO - https://packages.adoptium.net/artifactory/api/gpg/key/public | gpg --dearmor -o /etc/apt/keyrings/adoptium.gpg
+  shell: wget -qO - https://packages.adoptium.net/artifactory/api/gpg/key/public | gpg --batch --yes --dearmor -o /etc/apt/keyrings/adoptium.gpg
 
 - name: "Configure the Eclipse Adoptium apt repository"
   become: true

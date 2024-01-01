@@ -1,6 +1,6 @@
 - name: "Download and import the Nodesource GPG key"
   become: true
-  shell: curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+  shell: curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --batch --yes --dearmor -o /etc/apt/keyrings/nodesource.gpg
 
 - name: "Create Nodesource apt repository"
   become: true
