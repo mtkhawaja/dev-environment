@@ -1,0 +1,21 @@
+- name: "Create key rings directory"
+  become: true
+  file:
+    path: "/etc/apt/keyrings"
+    state: directory
+
+- name: "Create '~/.ssh' folder"
+  file:
+    path: "{{ lookup('env', 'HOME') }}/.ssh"
+    state: directory
+    mode: 0700
+
+- name: "Create '~/downloads' directory"
+  ansible.builtin.file:
+    path: "{{ lookup('env', 'HOME') }}/downloads"
+    state: directory
+
+- name: "Create '~/source-code' directory"
+  ansible.builtin.file:
+    path: "{{ lookup('env', 'HOME') }}/source-code"
+    state: directory

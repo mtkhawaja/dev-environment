@@ -1,10 +1,3 @@
-- name: "Create ~/.ssh folder"
-  become: true
-  file:
-    path: "{{ lookup('env', 'HOME') }}/.ssh"
-    state: directory
-    mode: 0700
-
 - name: "Install funtoo keychain"
   become: true
   package:

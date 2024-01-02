@@ -14,12 +14,6 @@
       - "ca-certificates"
     state: present
 
-- name: "Create key rings directory"
-  become: true
-  file:
-    path: /etc/apt/keyrings
-    state: directory
-
 - name: "Install powerline fonts"
   become: true
   package:
