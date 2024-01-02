@@ -16,6 +16,8 @@
       - "tofrodos"
       - "neofetch"
       - "rsync"
+      - "tree"
+      - "expect"
     state: present
 
 - name: "Install man pages"
