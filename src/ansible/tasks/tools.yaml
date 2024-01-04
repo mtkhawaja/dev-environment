@@ -18,7 +18,9 @@
       - "rsync"
       - "tree"
       - "expect"
-    state: present
+    state: latest
+  tags:
+    - cli-tools
 
 - name: "Install man pages"
   become: true
@@ -27,6 +29,8 @@
       - "man-db"
       - "manpages-posix"
     state: present
+  tags:
+    - initial-setup
 
 - name: "Install build tools (build-essential, cmake, pkg-config, libpthread-stubs0-dev)"
   become: true
@@ -39,3 +43,5 @@
       - "lua5.1"
       - "libtool"
       - "libtool-bin"
+  tags:
+    - initial-setup

@@ -2,10 +2,16 @@
 - name: "Download the Eclipse Adoptium GPG key:"
   become: true
   shell: wget -qO - https://packages.adoptium.net/artifactory/api/gpg/key/public | gpg --batch --yes --dearmor -o /etc/apt/keyrings/adoptium.gpg
+  tags:
+    - initial-setup
+    - java
 
 - name: "Configure the Eclipse Adoptium apt repository"
   become: true
   shell: echo "deb [signed-by=/etc/apt/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" | tee /etc/apt/sources.list.d/adoptium.list
+  tags:
+    - initial-setup
+    - java
 
 - name: "Update apt"
   become: true
@@ -13,10 +19,16 @@
     force_apt_get: true
     update_cache: true
     state: present
+  tags:
+    - java
 
-- name: "Install Java 8, 17, 21"
+
+- name: "Install Java 8, and 17"
   become: true
   package:
     name:
       - "temurin-8-jdk"
       - "temurin-17-jdk"
+    state: latest
+  tags:
+    - java

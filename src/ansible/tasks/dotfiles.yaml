@@ -3,6 +3,10 @@
   package:
     name: stow
     state: present
+  tags:
+    - initial-setup
+    - dotfiles
+
 - name: "Clone dotfiles"
   ansible.builtin.git:
     repo: 'https://github.com/mtkhawaja/dotfiles.git'
@@ -11,6 +15,10 @@
     update: yes
     accept_hostkey: yes
     version: main
+  tags:
+    - dotfiles
+
 - name: "Stow dotfiles"
   shell: cd "$HOME/.dotfiles" && ./setup.sh
-
+  tags:
+    - dotfiles

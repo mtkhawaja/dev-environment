@@ -4,6 +4,8 @@
     force_apt_get: true
     update_cache: true
     state: present
+  tags:
+    - initial-setup
 
 - name: "Install apt-transport-https, ca-certificates and gnupg"
   become: true
@@ -13,12 +15,16 @@
       - "gnupg"
       - "ca-certificates"
     state: present
+  tags:
+    - intial-setup
 
 - name: "Install powerline fonts"
   become: true
   package:
     name: fonts-powerline
     state: present
+  tags:
+    - initial-setup
 
 - name: "Install locales"
   become: true
@@ -27,3 +33,5 @@
       - "locales"
       - "locales-all"
     state: present
+  tags:
+    - initial-setup

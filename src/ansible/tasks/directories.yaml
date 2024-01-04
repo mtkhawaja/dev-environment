@@ -3,19 +3,29 @@
   file:
     path: "/etc/apt/keyrings"
     state: directory
+  tags:
+    - initial-setup
 
 - name: "Create '~/.ssh' folder"
   file:
     path: "{{ lookup('env', 'HOME') }}/.ssh"
     state: directory
     mode: 0700
+  tags:
+    - initial-setup
 
 - name: "Create '~/downloads' directory"
   ansible.builtin.file:
     path: "{{ lookup('env', 'HOME') }}/downloads"
     state: directory
+  tags:
+    - initial-setup
 
 - name: "Create '~/source-code' directory"
   ansible.builtin.file:
     path: "{{ lookup('env', 'HOME') }}/source-code"
     state: directory
+  tags:
+    - initial-setup
+
+

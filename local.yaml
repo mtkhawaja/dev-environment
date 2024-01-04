@@ -6,7 +6,6 @@
 
   tasks:
     - import_tasks: src/ansible/tasks/tools.yaml
-    - import_tasks: src/ansible/tasks/ssh.yaml
     - import_tasks: src/ansible/tasks/zsh.yaml
     - import_tasks: src/ansible/tasks/neovim.yaml
     - import_tasks: src/ansible/tasks/java.yaml
