@@ -22,6 +22,40 @@
   tags:
     - cli-tools
 
+# See: https://github.com/eza-community/eza/blob/main/INSTALL.md
+- name: "Download eza GPG key:"
+  become: true
+  shell: wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
+  tags:
+    - initial-setup
+    - cli-tools
+    - eza
+
+- name: "Configure the eza apt repository"
+  become: true
+  shell: echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | tee /etc/apt/sources.list.d/gierens.list
+  tags:
+    - initial-setup
+    - cli-tools
+    - eza
+
+- name: "Update apt"
+  become: true
+  apt:
+    force_apt_get: true
+    update_cache: true
+    state: present
+  tags:
+    - initial-setup
+    - cli-tools
+    - eza
+
+- name: "Install eza"
+  become: true
+  package:
+    name:
+      - "eza"
+
 - name: "Install man pages"
   become: true
   package:
