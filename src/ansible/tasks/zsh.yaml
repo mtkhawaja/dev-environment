@@ -13,12 +13,12 @@
     - initial-setup
     - zsh
 
-- name: "Switch default shell to zsh"
-  become: true
-  shell: chsh -s /bin/zsh
-  tags:
-    - initial-setup
-    - zsh
+# - name: "Switch default shell to zsh"
+#  become: true
+#  shell: chsh -s /bin/zsh
+#  tags:
+#    - initial-setup
+#    - zsh
 
 - name: "Install oh-my-zsh"
   shell: curl -L https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh > ~/.oh-my-installer && chmod +x ~/.oh-my-installer && ~/.oh-my-installer
