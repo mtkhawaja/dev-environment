@@ -15,7 +15,7 @@
 
 - name: "Switch default shell to zsh"
   become: true
-  shell: chsh -s $(which zsh)
+  shell: chsh -s /bin/zsh
   tags:
     - initial-setup
     - zsh
