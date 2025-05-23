@@ -1,0 +1,30 @@
+- name: Check if SDKMAN is installed
+  ansible.builtin.stat:
+    path: "{{ ansible_env.HOME }}/.sdkman/bin/sdkman-init.sh"
+  register: sdkman_init
+
+- name: Download SDKMAN installer
+  ansible.builtin.get_url:
+    url: https://get.sdkman.io
+    dest: /tmp/sdkman_installer.sh
+    mode: '0700'
+  when: not sdkman_init.stat.exists
+
+- name: Install SDKMAN
+  ansible.builtin.shell: /tmp/sdkman_installer.sh
+  args:
+    creates: "{{ ansible_env.HOME }}/.sdkman/bin/sdkman-init.sh"
+  when: not sdkman_init.stat.exists
+
+- name: Add SDKMAN to .zshrc
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_env.HOME }}/.zshrc"
+    line: '[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"'
+    state: present
+    create: yes
+
+- name: Clean up installer
+  ansible.builtin.file:
+    path: /tmp/sdkman_installer.sh
+    state: absent
+  when: not sdkman_init.stat.exists

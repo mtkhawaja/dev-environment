@@ -1,34 +1,27 @@
-# See: https://adoptium.net/installation/linux/
-- name: "Download the Eclipse Adoptium GPG key:"
-  become: true
-  shell: wget -qO - https://packages.adoptium.net/artifactory/api/gpg/key/public | gpg --batch --yes --dearmor -o /etc/apt/keyrings/adoptium.gpg
-  tags:
-    - initial-setup
-    - java
+---
+# Java installation via SDKMAN
 
-- name: "Configure the Eclipse Adoptium apt repository"
-  become: true
-  shell: echo "deb [signed-by=/etc/apt/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" | tee /etc/apt/sources.list.d/adoptium.list
-  tags:
-    - initial-setup
-    - java
-
-- name: "Update apt"
-  become: true
-  apt:
-    force_apt_get: true
-    update_cache: true
-    state: present
+- name: "Install Java 21 (LTS) via SDKMAN"
+  ansible.builtin.shell: |
+    source {{ ansible_env.HOME }}/.sdkman/bin/sdkman-init.sh && sdk install java 21-tem
+  args:
+    executable: /bin/bash
+  register: java_install_result
+  changed_when: "'is already installed' not in java_install_result.stdout"
   tags:
     - java
+    - sdkman
 
-
-- name: "Install Java 8, and 17"
-  become: true
-  package:
-    name:
-      - "temurin-8-jdk"
-      - "temurin-17-jdk"
-    state: latest
+- name: "Install Java development tools via SDKMAN"
+  ansible.builtin.shell: |
+    source {{ ansible_env.HOME }}/.sdkman/bin/sdkman-init.sh && sdk install {{ item }}
+  args:
+    executable: /bin/bash
+  loop:
+    - maven
+    - gradle
+  register: tool_install_result
+  changed_when: "'is already installed' not in tool_install_result.stdout"
   tags:
     - java
+    - sdkman

@@ -9,6 +9,14 @@ docker build -t mtkhawaja/dev-env:latest . && docker run -it --rm mtkhawaja/dev-
 
 ```
 
+or for windows:
+
+```powershell
+#!/usr/bin/env pwsh
+
+docker build -t mtkhawaja/dev-env:latest . ; if ($?) { docker run -it --rm mtkhawaja/dev-env:latest }\
+```
+
 ## Setting up a new machine
 
 Run the [convenience script](./setup.sh) below to install Ansible and run the playbook i.e.
@@ -19,6 +27,12 @@ Run the [convenience script](./setup.sh) below to install Ansible and run the pl
 curl -s https://raw.githubusercontent.com/mtkhawaja/dev-environment/main/setup.sh | bash
 
 ```
+or for windows:
+
+```powershell
+
+```
+
 
 Alternatively, you can run the commands below manually:
 

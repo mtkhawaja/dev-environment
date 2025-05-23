@@ -5,15 +5,13 @@
     - import_tasks: src/ansible/tasks/directories.yaml
 
   tasks:
-    - import_tasks: src/ansible/tasks/tools.yaml
     - import_tasks: src/ansible/tasks/zsh.yaml
+    - import_tasks: src/ansible/tasks/dotfiles.yaml
+    - import_tasks: src/ansible/tasks/tools.yaml
+    - import_tasks: src/ansible/tasks/sdkman.yaml
     - import_tasks: src/ansible/tasks/neovim.yaml
     - import_tasks: src/ansible/tasks/java.yaml
     - import_tasks: src/ansible/tasks/js.yaml
-    - import_tasks: src/ansible/tasks/git.yaml
-    # Run this last to ensure any changes to zshrc are applied
-    # See https://github.com/ohmyzsh/ohmyzsh/issues/4390 for more info
-    - import_tasks: src/ansible/tasks/dotfiles.yaml
-
+    - import_tasks: src/ansible/tasks/bitwarden-cli.yaml
   post_tasks:
     - import_tasks: src/ansible/tasks/post_install.yaml

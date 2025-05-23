@@ -1,6 +1,6 @@
-- name: "Install common CLI tools (tmux, jq, xclip, tldr, fzf, curl, wget, htop, lsof, unzip, gettext, tofrodos ...)"
+- name: "Install common CLI tools"
   become: true
-  package:
+  ansible.builtin.apt:
     name:
       - "tmux"
       - "jq"
@@ -12,39 +12,49 @@
       - "htop"
       - "lsof"
       - "unzip"
+      - "zip"
       - "gettext"
       - "tofrodos"
       - "neofetch"
       - "rsync"
       - "tree"
       - "expect"
-    state: latest
-  tags:
-    - cli-tools
-
-# See: https://github.com/eza-community/eza/blob/main/INSTALL.md
-- name: "Download eza GPG key:"
-  become: true
-  shell: wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
-  tags:
-    - initial-setup
-    - cli-tools
-    - eza
-
-- name: "Configure the eza apt repository"
-  become: true
-  shell: echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | tee /etc/apt/sources.list.d/gierens.list
-  tags:
-    - initial-setup
-    - cli-tools
-    - eza
-
-- name: "Update apt"
-  become: true
-  apt:
-    force_apt_get: true
-    update_cache: true
     state: present
+    update_cache: true
+  tags:
+    - initial-setup
+    - cli-tools
+
+- name: "Download eza GPG key"
+  become: true
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/eza-community/eza/main/deb.asc
+    dest: /tmp/eza.asc
+    mode: '0644'
+  register: eza_key_downloaded
+  tags:
+    - initial-setup
+    - cli-tools
+    - eza
+
+- name: "Import eza GPG key"
+  become: true
+  ansible.builtin.shell: cat /tmp/eza.asc | gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
+  args:
+    creates: /etc/apt/keyrings/gierens.gpg
+  when: eza_key_downloaded is changed
+  tags:
+    - initial-setup
+    - cli-tools
+    - eza
+
+- name: "Add eza repository"
+  become: true
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main"
+    filename: gierens
+    state: present
+    update_cache: true
   tags:
     - initial-setup
     - cli-tools
@@ -52,23 +62,39 @@
 
 - name: "Install eza"
   become: true
-  package:
-    name:
-      - "eza"
+  ansible.builtin.apt:
+    name: eza
+    state: present
+    update_cache: false
+  tags:
+    - initial-setup
+    - cli-tools
+    - eza
+
+- name: "Clean up eza temporary files"
+  become: true
+  ansible.builtin.file:
+    path: /tmp/eza.asc
+    state: absent
+  tags:
+    - initial-setup
+    - cli-tools
+    - eza
 
 - name: "Install man pages"
   become: true
-  package:
+  ansible.builtin.apt:
     name:
       - "man-db"
       - "manpages-posix"
     state: present
   tags:
     - initial-setup
+    - cli-tools
 
-- name: "Install build tools (build-essential, cmake, pkg-config, libpthread-stubs0-dev)"
+- name: "Install build tools"
   become: true
-  package:
+  ansible.builtin.apt:
     name:
       - "build-essential"
       - "cmake"
@@ -77,5 +103,8 @@
       - "lua5.1"
       - "libtool"
       - "libtool-bin"
+      - "ninja-build"
+    state: present
   tags:
     - initial-setup
+    - cli-tools

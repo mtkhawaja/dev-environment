@@ -1,40 +1,69 @@
-- name: "Remove neovim"
-  shell: rm -rf ~/neovim
+- name: "Remove neovim directory if exists"
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/neovim"
+    state: absent
   tags:
     - cleanup
+    - initial-setup
+    - nvim
+
+- name: "Create Packer plugin directory"
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.local/share/nvim/site/pack/packer/start"
+    state: directory
+    mode: '0755'
+  tags:
     - initial-setup
     - nvim
 
 - name: "Get Packer"
   ansible.builtin.git:
     repo: 'https://github.com/wbthomason/packer.nvim'
-    dest: "{{ lookup('env', 'HOME') }}/.local/share/nvim/site/pack/packer/start/packer.nvim"
+    dest: "{{ ansible_env.HOME }}/.local/share/nvim/site/pack/packer/start/packer.nvim"
+    clone: yes
+    update: yes
   tags:
     - initial-setup
     - nvim
 
+- name: "Install Neovim build dependencies"
+  become: true
+  ansible.builtin.apt:
+    name:
+      - ninja-build
+      - gettext
+      - cmake
+      - unzip
+      - curl
+      - pkg-config
+    state: present
+  tags:
+    - initial-setup
+    - nvim
 
 - name: "Clone Neovim"
   ansible.builtin.git:
     repo: 'https://github.com/neovim/neovim.git'
-    dest: "{{ lookup('env', 'HOME') }}/neovim"
+    dest: "{{ ansible_env.HOME }}/neovim"
+    clone: yes
+    update: yes
   tags:
     - initial-setup
     - nvim
-
 
 - name: "Build neovim"
-  shell: "cd {{ lookup('env', 'HOME') }}/neovim && make -j 20"
+  ansible.builtin.command:
+    cmd: make -j 20
+    chdir: "{{ ansible_env.HOME }}/neovim"
   tags:
     - initial-setup
     - nvim
-
 
 - name: "Install neovim"
   become: true
-  shell: "cd {{ lookup('env', 'HOME') }}/neovim && make install"
+  ansible.builtin.command:
+    cmd: make install
+    chdir: "{{ ansible_env.HOME }}/neovim"
   tags:
     - initial-setup
     - nvim
-
-

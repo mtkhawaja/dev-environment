@@ -1,37 +1,21 @@
-- name: "Update apt"
+- name: "Update apt cache"
   become: true
-  apt:
-    force_apt_get: true
+  ansible.builtin.apt:
     update_cache: true
-    state: present
+    cache_valid_time: 3600
   tags:
     - initial-setup
+    - packages
 
-- name: "Install apt-transport-https, ca-certificates and gnupg"
+- name: "Install system packages"
   become: true
-  package:
-    name:
-      - "apt-transport-https"
-      - "gnupg"
-      - "ca-certificates"
+  ansible.builtin.apt:
+    name: "{{ item.packages }}"
     state: present
-  tags:
-    - intial-setup
-
-- name: "Install powerline fonts"
-  become: true
-  package:
-    name: fonts-powerline
-    state: present
+  loop:
+    - { packages: [ "apt-transport-https", "gnupg", "ca-certificates" ], description: "Package management dependencies" }
+    - { packages: [ "fonts-powerline" ], description: "Powerline fonts" }
+    - { packages: [ "locales", "locales-all" ], description: "Locale support" }
   tags:
     - initial-setup
-
-- name: "Install locales"
-  become: true
-  package:
-    name:
-      - "locales"
-      - "locales-all"
-    state: present
-  tags:
-    - initial-setup
+    - packages

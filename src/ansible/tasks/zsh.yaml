@@ -1,7 +1,21 @@
-- name: "Cleanup existing zsh config"
-  shell: rm -rf ~/.oh-my-zsh && rm -f ~/.zshrc ~/.zshenv
+- name: "Cleanup existing zsh config files"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "{{ ansible_env.HOME }}/.oh-my-zsh"
+    - "{{ ansible_env.HOME }}/.zshrc"
+    - "{{ ansible_env.HOME }}/.zshenv"
   tags:
-    - cleanup
+    - cleanup-zsh-config
+
+- name: "Check if zsh is installed"
+  command: which zsh
+  register: is_zsh_installed
+  changed_when: false
+  failed_when: false
+  tags:
+    - initial-setup
     - zsh
 
 - name: "Install zsh"
@@ -9,35 +23,47 @@
   package:
     name: zsh
     state: present
+  when: is_zsh_installed.rc != 0
   tags:
-    - initial-setup
-    - zsh
+    - install-zsh
 
-# - name: "Switch default shell to zsh"
-#  become: true
-#  shell: chsh -s /bin/zsh
-#  tags:
-#    - initial-setup
-#    - zsh
+
+- name: "Download oh-my-zsh installer"
+  ansible.builtin.get_url:
+    url: https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh
+    dest: "{{ ansible_env.HOME }}/.oh-my-installer"
+    mode: '0700'
+  tags:
+    - oh-my-zsh-setup
 
 - name: "Install oh-my-zsh"
-  shell: curl -L https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh > ~/.oh-my-installer && chmod +x ~/.oh-my-installer && ~/.oh-my-installer
+  ansible.builtin.command: "{{ ansible_env.HOME }}/.oh-my-installer"
+  args:
+    creates: "{{ ansible_env.HOME }}/.oh-my-zsh"
   tags:
-    - initial-setup
-    - zsh
+    - oh-my-zsh-setup
+
+- name: "Remove oh-my-zsh installer"
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.oh-my-installer"
+    state: absent
+  tags:
+    - oh-my-zsh-setup
 
 - name: "Download zsh-autosuggestions plugin"
   ansible.builtin.git:
     repo: "https://github.com/zsh-users/zsh-autosuggestions.git"
-    dest: "~/.oh-my-zsh/plugins/zsh-autosuggestions"
+    dest: "{{ ansible_env.HOME }}/.oh-my-zsh/plugins/zsh-autosuggestions"
+    clone: yes
+    update: yes
   tags:
-    - initial-setup
-    - zsh
+    - oh-my-zsh-setup
 
 - name: "Download zsh-syntax-highlighting plugin"
   ansible.builtin.git:
     repo: "https://github.com/zsh-users/zsh-syntax-highlighting.git"
-    dest: "~/.oh-my-zsh/plugins/zsh-syntax-highlighting"
+    dest: "{{ ansible_env.HOME }}/.oh-my-zsh/plugins/zsh-syntax-highlighting"
+    clone: yes
+    update: yes
   tags:
-    - initial-setup
-    - zsh
+    - oh-my-zsh-setup

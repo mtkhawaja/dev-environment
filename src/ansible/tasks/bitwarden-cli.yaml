@@ -1,0 +1,20 @@
+- name: "Install bitwarden CLI"
+  block:
+    - name: "Ensure bitwarden directories exist"
+      ansible.builtin.file:
+        path: "{{ ansible_env.HOME }}/.local/bin/tools/bitwarden/bin"
+        state: directory
+        mode: '0755'
+
+    - name: "Download and install Bitwarden CLI"
+      ansible.builtin.unarchive:
+        src: "https://vault.bitwarden.com/download/?app=cli&platform=linux"
+        dest: "{{ ansible_env.HOME }}/.local/bin/tools/bitwarden/bin"
+        remote_src: yes
+        mode: '0755'
+        creates: "{{ ansible_env.HOME }}/.local/bin/tools/bitwarden/bin/bw"
+        extra_opts:
+          - "-j"  # Extract just the files without directory structure
+  tags:
+    - initial-setup
+    - bitwarden
