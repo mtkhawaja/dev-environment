@@ -1,5 +1,0 @@
-- name: "Install BitWarden CLI"
-  shell: cd "$HOME/.dotfiles/bin/.local/bin/scripts/install" && ./bitwarden.sh
-  tags:
-    - post-dotfile-setup
-    - bitwarden
