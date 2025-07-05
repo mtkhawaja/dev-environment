@@ -7,7 +7,20 @@
     - initial-setup
     - dotfiles
 
-- name: "Clone dotfiles"
+- name: "Archive local dotfiles if uncommitted changes exist"
+  shell: |
+    cd "$HOME/.dotfiles" && \
+    git diff --quiet || \
+    tar czf "$HOME/dotfiles-backup-$(date +%Y%m%d-%H%M%S).tar.gz" .
+  args:
+    executable: /bin/bash
+  changed_when: false
+  failed_when: false
+  when: ansible_facts['user_dir'] is defined and ansible_facts['user_dir'] + '/.dotfiles' is exists
+  tags:
+    - dotfiles
+
+- name: "Clone dotfiles (force overwrite any local changes)"
   ansible.builtin.git:
     repo: 'https://github.com/mtkhawaja/dotfiles.git'
     dest: "{{ lookup('env', 'HOME') }}/.dotfiles"
@@ -15,10 +28,13 @@
     update: yes
     accept_hostkey: yes
     version: main
+    force: yes
   tags:
     - dotfiles
 
 - name: "Stow dotfiles"
   shell: cd "$HOME/.dotfiles" && ./setup.sh
+  args:
+    executable: /bin/bash
   tags:
     - dotfiles
