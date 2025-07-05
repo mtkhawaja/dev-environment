@@ -15,3 +15,4 @@
     - import_tasks: src/ansible/tasks/bitwarden-cli.yaml
     - import_tasks: src/ansible/tasks/python.yaml
     - import_tasks: src/ansible/tasks/yazi.yaml
+    - import_tasks: src/ansible/tasks/go.yaml

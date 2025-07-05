@@ -1,0 +1,47 @@
+- name: "Set Go version"
+  set_fact:
+    go_version: "1.24.4"
+
+- name: "Download Go {{ go_version }} tarball"
+  get_url:
+    url: "https://go.dev/dl/go{{ go_version }}.linux-amd64.tar.gz"
+    dest: "/tmp/go{{ go_version }}.tar.gz"
+    mode: '0644'
+
+- name: "Remove existing Go installation (if any)"
+  become: true
+  file:
+    path: /usr/local/go
+    state: absent
+
+- name: "Extract Go {{ go_version }} to /usr/local"
+  become: true
+  unarchive:
+    src: "/tmp/go{{ go_version }}.tar.gz"
+    dest: /usr/local
+    remote_src: true
+
+- name: "Ensure Go workspace directories exist"
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - "{{ ansible_env.HOME }}/go"
+    - "{{ ansible_env.HOME }}/go/bin"
+
+- name: "Add Go environment variables to ~/.zshenv"
+  blockinfile:
+    path: "{{ ansible_env.HOME }}/.zshenv"
+    marker: "# {mark} ANSIBLE: Go environment"
+    block: |
+      export GOPATH=$HOME/go
+      export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
+
+- name: "Install gopls (Go language server)"
+  shell: |
+    export PATH=$PATH:/usr/local/go/bin
+    /usr/local/go/bin/go install golang.org/x/tools/gopls@latest
+  args:
+    executable: /bin/zsh
+    creates: "{{ ansible_env.HOME }}/go/bin/gopls"
