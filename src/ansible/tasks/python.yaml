@@ -1,0 +1,102 @@
+---
+- name: Ensure required packages for building Python are installed
+  become: true
+  apt:
+    name:
+      - make
+      - build-essential
+      - libssl-dev
+      - zlib1g-dev
+      - libbz2-dev
+      - libreadline-dev
+      - libsqlite3-dev
+      - wget
+      - curl
+      - llvm
+      - libncursesw5-dev
+      - xz-utils
+      - tk-dev
+      - libxml2-dev
+      - libxmlsec1-dev
+      - libffi-dev
+      - liblzma-dev
+      - git
+    state: present
+    update_cache: true
+
+- name: Clone pyenv repository
+  git:
+    repo: https://github.com/pyenv/pyenv.git
+    dest: "{{ ansible_env.HOME }}/.pyenv"
+    update: no
+
+- name: Ensure PYENV_ROOT and .local/bin in PATH (zshenv)
+  blockinfile:
+    path: "{{ ansible_env.HOME }}/.zshenv"
+    create: yes
+    block: |
+      export PYENV_ROOT="$HOME/.pyenv"
+      export PATH="$PYENV_ROOT/bin:$HOME/.local/bin:$PATH"
+
+- name: Initialize pyenv in .zshrc
+  lineinfile:
+    path: "{{ ansible_env.HOME }}/.zshrc"
+    create: yes
+    line: 'eval "$(pyenv init --path)"'
+    state: present
+
+- name: Install Python 3.13 via pyenv
+  shell: |
+    export PYENV_ROOT="$HOME/.pyenv"
+    export PATH="$PYENV_ROOT/bin:$PATH"
+    eval "$(pyenv init --path)"
+    pyenv install -s 3.13
+  args:
+    executable: /bin/bash
+
+- name: Install Python 3.12 via pyenv
+  shell: |
+    export PYENV_ROOT="$HOME/.pyenv"
+    export PATH="$PYENV_ROOT/bin:$PATH"
+    eval "$(pyenv init --path)"
+    pyenv install -s 3.12
+  args:
+    executable: /bin/bash
+
+- name: Set Python 3.13 as global default via pyenv
+  shell: |
+    export PYENV_ROOT="$HOME/.pyenv"
+    export PATH="$PYENV_ROOT/bin:$PATH"
+    eval "$(pyenv init --path)"
+    pyenv global 3.13
+  args:
+    executable: /bin/bash
+
+- name: Install pipx using pyenv's Python
+  shell: |
+    export PYENV_ROOT="$HOME/.pyenv"
+    export PATH="$PYENV_ROOT/bin:$PATH"
+    eval "$(pyenv init --path)"
+    pyenv shell 3.13
+    python -m ensurepip --upgrade
+    python -m pip install --user pipx
+  args:
+    executable: /bin/bash
+    creates: "{{ ansible_env.HOME }}/.local/bin/pipx"
+
+- name: Install poetry using pipx
+  become: false
+  command: "{{ ansible_env.HOME }}/.local/bin/pipx install poetry"
+  args:
+    creates: "{{ ansible_env.HOME }}/.local/pipx/venvs/poetry"
+
+- name: Install global Python CLI tools via pipx
+  become: false
+  loop:
+    - black
+    - ipython
+    - mypy
+    - pylint
+  command: "{{ ansible_env.HOME }}/.local/bin/pipx install {{ item }}"
+  args:
+    creates: "{{ ansible_env.HOME }}/.local/pipx/venvs/{{ item }}"
