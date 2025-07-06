@@ -9,7 +9,8 @@
       - "fzf"
       - "curl"
       - "wget"
-      - "htop"
+      - "btop"
+      - "dig"
       - "lsof"
       - "unzip"
       - "zip"
@@ -19,6 +20,8 @@
       - "rsync"
       - "tree"
       - "expect"
+      - "bat"
+      - "ripgrep"
     state: present
     update_cache: true
   tags:
