@@ -10,7 +10,6 @@
       - "curl"
       - "wget"
       - "btop"
-      - "dig"
       - "lsof"
       - "unzip"
       - "zip"
