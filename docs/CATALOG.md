@@ -60,7 +60,7 @@ is generated from the Ansible task files in `src/ansible/tasks/` — when you ad
 | **expect**                     | TTY automation        | Script interactive prompts (passwords, confirmations).                                               |
 | **zip** / **unzip**            | Archive tools         | Create and extract `.zip` archives (also required to unpack some release binaries).                  |
 | **tofrodos**                   | Line-ending converter | Convert between DOS (CRLF) and Unix (LF) line endings — handy across Windows/WSL.                    |
-| **neofetch**                   | System info           | At-a-glance OS/hardware summary for the terminal.                                                    |
+| **neofetch** / **fastfetch**   | System info           | At-a-glance OS/hardware summary for the terminal. Debian installs `neofetch`; macOS installs `fastfetch` (its maintained successor — neofetch is discontinued and gone from Homebrew). |
 | **gettext**                    | i18n utilities        | Provides `envsubst` and translation tooling; also a Neovim build dependency.                         |
 | **man-db**, **manpages-posix** | Manual pages          | Local documentation for commands and POSIX APIs.                                                     |
 | **locales**, **locales-all**   | Locale data           | Ensures UTF-8 and locale settings work correctly (avoids `LC_*` warnings).                           |

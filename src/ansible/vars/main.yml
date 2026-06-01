@@ -98,6 +98,9 @@ tools:
   # macOS: brew names (built-ins curl/zip/unzip/lsof/rsync/man omitted;
   # X11-only xclip omitted -> pbcopy/pbpaste; tofrodos -> dos2unix;
   # build-essential -> Xcode CLT assumed present).
+  # neofetch -> fastfetch: neofetch is discontinued upstream and was removed
+  # from Homebrew; fastfetch is its maintained drop-in successor. (Debian/Noble
+  # has no fastfetch package, so the apt list above keeps neofetch for now.)
   brew_formulae:
     - tmux
     - jq
@@ -106,7 +109,7 @@ tools:
     - btop
     - gettext
     - tldr
-    - neofetch
+    - fastfetch
     - tree
     - expect
     - bat
