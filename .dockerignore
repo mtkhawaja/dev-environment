@@ -1,0 +1,8 @@
+# The Dockerfile does `COPY . .` into /home/mtkhawaja to mirror a run. Keep the
+# repo's own dev-only metadata out of that simulated $HOME so it doesn't collide
+# with tools that own dirs there — notably `.claude`, which the Claude Code
+# installer needs to create/own at ~/.claude (a root-owned copy of the repo's
+# .claude/skills would make `mkdir ~/.claude/downloads` fail). None of these are
+# needed to run the playbook.
+.git
+.claude
