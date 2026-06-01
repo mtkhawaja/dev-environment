@@ -10,8 +10,10 @@
     mode: '0700'
   when: not sdkman_init.stat.exists
 
+# Run the installer under zsh on macOS (bash 3.2 there trips SDKMAN's bash-4
+# gate; zsh skips it). Debian uses bash 5.x. See sdkman_shell in vars/main.yml.
 - name: Install SDKMAN
-  ansible.builtin.shell: /tmp/sdkman_installer.sh
+  ansible.builtin.shell: "{{ sdkman_shell }} /tmp/sdkman_installer.sh"
   args:
     creates: "{{ ansible_env.HOME }}/.sdkman/bin/sdkman-init.sh"
   when: not sdkman_init.stat.exists

@@ -158,6 +158,13 @@ yazi:
 # Python is managed by uv (Astral), which downloads prebuilt standalone Pythons —
 # no system build dependencies needed, so there's no python: package data here.
 
+# Shell used to run the SDKMAN installer and `sdk` commands. macOS ships only
+# bash 3.2, and SDKMAN's installer hard-requires bash 4+ — BUT that check is
+# guarded by `[ -n "$BASH_VERSION" ]`, so running under zsh (always present on
+# macOS, and SDKMAN supports it) skips the gate entirely. Debian's /bin/bash is
+# already 5.x, so it stays on bash. Evaluated lazily against runtime facts.
+sdkman_shell: "{{ '/bin/zsh' if ansible_facts.os_family == 'Darwin' else '/bin/bash' }}"
+
 node:
   nvm_version: "v0.40.4"
   node_version: "--lts"
