@@ -27,7 +27,9 @@
     export NVM_DIR="$HOME/.nvm"
     . "$NVM_DIR/nvm.sh"
     nvm install {{ node.node_version }}
-    nvm alias default {{ node.node_version }}
+    # `--lts` is an install-only flag; the default alias must be a version
+    # target. 'lts/*' = the latest LTS line, matching the --lts install above.
+    nvm alias default 'lts/*'
   args:
     executable: /bin/bash
     creates: "{{ ansible_env.HOME }}/.nvm/alias/default"
