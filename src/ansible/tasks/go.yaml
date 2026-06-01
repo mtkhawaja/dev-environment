@@ -2,24 +2,41 @@
   set_fact:
     go_version: "1.24.4"
 
-- name: "Download Go {{ go_version }} tarball"
+- name: "Download Go {{ go_version }} tarball (Debian)"
   get_url:
     url: "https://go.dev/dl/go{{ go_version }}.linux-amd64.tar.gz"
     dest: "/tmp/go{{ go_version }}.tar.gz"
     mode: '0644'
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - go
 
-- name: "Remove existing Go installation (if any)"
+- name: "Remove existing Go installation (if any) (Debian)"
   become: true
   file:
     path: /usr/local/go
     state: absent
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - go
 
-- name: "Extract Go {{ go_version }} to /usr/local"
+- name: "Extract Go {{ go_version }} to /usr/local (Debian)"
   become: true
   unarchive:
     src: "/tmp/go{{ go_version }}.tar.gz"
     dest: /usr/local
     remote_src: true
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - go
+
+- name: "Install Go (macOS)"
+  community.general.homebrew:
+    name: "{{ go.brew_formulae }}"
+    state: present
+  when: ansible_facts.os_family == "Darwin"
+  tags:
+    - go
 
 - name: "Ensure Go workspace directories exist"
   file:
@@ -29,19 +46,17 @@
   loop:
     - "{{ ansible_env.HOME }}/go"
     - "{{ ansible_env.HOME }}/go/bin"
+  tags:
+    - go
 
-- name: "Add Go environment variables to ~/.zshenv"
-  blockinfile:
-    path: "{{ ansible_env.HOME }}/.zshenv"
-    marker: "# {mark} ANSIBLE: Go environment"
-    block: |
-      export GOPATH=$HOME/go
-      export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
+# GOPATH / Go PATH exports live in the dotfiles repo (.zshenv), not here.
 
 - name: "Install gopls (Go language server)"
   shell: |
-    export PATH=$PATH:/usr/local/go/bin
-    /usr/local/go/bin/go install golang.org/x/tools/gopls@latest
+    export PATH="$PATH:/usr/local/go/bin:/opt/homebrew/bin:/usr/local/bin"
+    command -v go >/dev/null && go install golang.org/x/tools/gopls@latest
   args:
-    executable: /bin/zsh
+    executable: /bin/bash
     creates: "{{ ansible_env.HOME }}/go/bin/gopls"
+  tags:
+    - go

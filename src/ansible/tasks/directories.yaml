@@ -7,7 +7,17 @@
     - { path: ".ssh", mode: "0700" }
     - { path: "source-code" }
     - { path: ".local/bin/tools" }
-    - { path: "/etc/apt/keyrings" }
+  tags:
+    - initial-setup
+    - directories
+
+- name: "Create apt keyrings directory (Debian)"
+  become: true
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+  when: ansible_facts.os_family == "Debian"
   tags:
     - initial-setup
     - directories

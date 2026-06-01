@@ -16,12 +16,7 @@
     creates: "{{ ansible_env.HOME }}/.sdkman/bin/sdkman-init.sh"
   when: not sdkman_init.stat.exists
 
-- name: Add SDKMAN to .zshrc
-  ansible.builtin.lineinfile:
-    path: "{{ ansible_env.HOME }}/.zshrc"
-    line: '[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"'
-    state: present
-    create: yes
+# Shell init (sourcing sdkman-init.sh) lives in the dotfiles repo (.zshenv), not here.
 
 - name: Clean up installer
   ansible.builtin.file:

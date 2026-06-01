@@ -1,0 +1,42 @@
+name: ci
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Ansible + lint
+        run: pip install ansible ansible-lint
+      - name: Syntax check
+        run: ansible-playbook --syntax-check local.yaml
+      - name: Ansible lint
+        run: ansible-lint || true   # advisory until the playbook is lint-clean
+
+  macos:
+    runs-on: macos-26          # Apple Silicon (arm64) — the target arch
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Ansible
+        run: brew install ansible
+      - name: Install collections
+        run: ansible-galaxy collection install -r requirements.yml
+      - name: Run playbook (full, end-to-end)
+        run: ansible-playbook -i localhost, local.yaml
+      - name: Smoke-check tools resolve
+        shell: bash -l {0}
+        run: |
+          set -e
+          export NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+          export PATH="$HOME/.bun/bin:$HOME/.local/bin:$PATH"
+          for t in delta lazygit dust duf procs sd hyperfine eza bat rg fd zoxide nvim yazi go bun bw; do
+            command -v "$t" && "$t" --version 2>/dev/null | head -n1 || echo "WARN: $t not found"
+          done
+          node --version

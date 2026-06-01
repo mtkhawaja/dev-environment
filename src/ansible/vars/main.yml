@@ -1,0 +1,160 @@
+---
+# Shared cross-platform configuration. Loaded by local.yaml via vars_files.
+
+modern_cli_versions:
+  delta: "0.19.2"
+  lazygit: "0.62.1"
+  dust: "1.2.4"
+  procs: "0.14.11"
+  sd: "1.1.0"
+
+modern_cli:
+  # macOS: install everything through Homebrew (handles arch automatically).
+  brew_formulae:
+    - git-delta
+    - lazygit
+    - dust
+    - duf
+    - procs
+    - sd
+    - hyperfine
+
+  # Debian/WSL: tools reliably packaged in Ubuntu Noble universe.
+  apt_packages:
+    - hyperfine
+    - duf
+
+  # Debian/WSL: delta installed from an upstream .deb release.
+  delta_deb_url: "https://github.com/dandavison/delta/releases/download/{{ modern_cli_versions.delta }}/git-delta_{{ modern_cli_versions.delta }}_amd64.deb"
+
+  # Debian/WSL: release binaries extracted into ~/.local/bin (x86_64 only).
+  # extra_opts handles each archive's layout: tarballs with a nested dir use
+  # --strip-components=1; zips with files at root use -j; lazygit's tarball is flat.
+  release_binaries:
+    - name: lazygit
+      url: "https://github.com/jesseduffield/lazygit/releases/download/v{{ modern_cli_versions.lazygit }}/lazygit_{{ modern_cli_versions.lazygit }}_linux_x86_64.tar.gz"
+      extra_opts: []
+    - name: dust
+      url: "https://github.com/bootandy/dust/releases/download/v{{ modern_cli_versions.dust }}/dust-v{{ modern_cli_versions.dust }}-x86_64-unknown-linux-gnu.tar.gz"
+      extra_opts: ["--strip-components=1"]
+    - name: sd
+      url: "https://github.com/chmln/sd/releases/download/v{{ modern_cli_versions.sd }}/sd-v{{ modern_cli_versions.sd }}-x86_64-unknown-linux-gnu.tar.gz"
+      extra_opts: ["--strip-components=1"]
+    - name: procs
+      url: "https://github.com/dalance/procs/releases/download/v{{ modern_cli_versions.procs }}/procs-v{{ modern_cli_versions.procs }}-x86_64-linux.zip"
+      extra_opts: ["-j"]
+
+# ---------- SP2/SP3 cross-platform package data ----------
+
+core:
+  # macOS: gnupg for key handling + pinentry-mac for the native GPG passphrase
+  # dialog (the dotfiles' gpg-agent setup prefers it). locales/ca-certs are native.
+  brew_formulae:
+    - gnupg
+    - pinentry-mac
+  # macOS powerline glyphs come from a nerd-font cask (installed separately).
+  brew_cask_fonts:
+    - font-meslo-lg-nerd-font
+
+shell:
+  brew_formulae:
+    - zsh
+
+dotfiles:
+  brew_formulae:
+    - stow
+
+tools:
+  # Debian apt list (moved verbatim out of tools.yaml).
+  apt_packages:
+    - tmux
+    - jq
+    - xclip
+    - tldr
+    - fzf
+    - curl
+    - wget
+    - btop
+    - lsof
+    - unzip
+    - zip
+    - gettext
+    - tofrodos
+    - neofetch
+    - rsync
+    - tree
+    - expect
+    - bat
+    - ripgrep
+  apt_build_tools:
+    - build-essential
+    - cmake
+    - pkg-config
+    - libpthread-stubs0-dev
+    - lua5.1
+    - libtool
+    - libtool-bin
+    - ninja-build
+  # macOS: brew names (built-ins curl/zip/unzip/lsof/rsync/man omitted;
+  # X11-only xclip omitted -> pbcopy/pbpaste; tofrodos -> dos2unix;
+  # build-essential -> Xcode CLT assumed present).
+  brew_formulae:
+    - tmux
+    - jq
+    - fzf
+    - wget
+    - btop
+    - gettext
+    - tldr
+    - neofetch
+    - tree
+    - expect
+    - bat
+    - ripgrep
+    - eza
+    - dos2unix
+    - cmake
+    - ninja
+    - pkg-config
+    - libtool
+    - lua
+
+neovim:
+  brew_formulae:
+    - neovim
+
+go:
+  brew_formulae:
+    - go
+
+bitwarden:
+  brew_formulae:
+    - bitwarden-cli
+
+yazi:
+  apt_packages:
+    - ffmpeg
+    - p7zip-full
+    - poppler-utils
+    - fd-find
+    - ripgrep
+    - fzf
+    - zoxide
+    - imagemagick
+  brew_formulae:
+    - yazi
+    - ffmpeg
+    - sevenzip
+    - poppler
+    - fd
+    - ripgrep
+    - fzf
+    - zoxide
+    - imagemagick
+
+# Python is managed by uv (Astral), which downloads prebuilt standalone Pythons —
+# no system build dependencies needed, so there's no python: package data here.
+
+node:
+  nvm_version: "v0.40.4"
+  node_version: "--lts"

@@ -1,0 +1,16 @@
+---
+# Bun (cross-platform: macOS + Debian/WSL). Official installer -> ~/.bun.
+
+# Bun PATH + completions live in the dotfiles repo (.zshenv / .zshrc), not here.
+# Bun's installer skips editing rc files when its bin dir is already on PATH,
+# so we prepend it for the install to stop it mutating the (symlinked) dotfiles.
+
+- name: "Install Bun"
+  ansible.builtin.shell: |
+    curl -fsSL https://bun.sh/install | PATH="$HOME/.bun/bin:$PATH" bash
+  args:
+    executable: /bin/bash
+    creates: "{{ ansible_env.HOME }}/.bun/bin/bun"
+  tags:
+    - initial-setup
+    - bun

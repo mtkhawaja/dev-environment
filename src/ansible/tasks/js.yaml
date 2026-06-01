@@ -1,50 +1,36 @@
-- name: "Download and import the Node source GPG key"
-  become: true
-  ansible.builtin.get_url:
-    url: https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key
-    dest: /tmp/nodesource-repo.gpg.key
-    mode: '0644'
-  register: gpg_key_downloaded
+---
+# Node.js via nvm (cross-platform: macOS + Debian/WSL).
+
+- name: "Check if nvm is installed"
+  ansible.builtin.stat:
+    path: "{{ ansible_env.HOME }}/.nvm/nvm.sh"
+  register: nvm_installed
   tags:
     - initial-setup
     - js
 
-- name: "Import NodeSource GPG key"
-  become: true
-  ansible.builtin.shell: cat /tmp/nodesource-repo.gpg.key | gpg --batch --yes --dearmor -o /etc/apt/keyrings/nodesource.gpg
+# PROFILE=/dev/null stops the nvm installer from editing rc files —
+# the NVM_DIR sourcing lines live in the dotfiles repo (.zshenv).
+- name: "Install nvm {{ node.nvm_version }}"
+  ansible.builtin.shell: |
+    curl -fsSL "https://raw.githubusercontent.com/nvm-sh/nvm/{{ node.nvm_version }}/install.sh" | PROFILE=/dev/null bash
   args:
-    creates: /etc/apt/keyrings/nodesource.gpg
-  when: gpg_key_downloaded is changed
+    executable: /bin/bash
+    creates: "{{ ansible_env.HOME }}/.nvm/nvm.sh"
+  when: not nvm_installed.stat.exists
   tags:
     - initial-setup
     - js
 
-- name: "Create Nodesource apt repository"
-  become: true
-  ansible.builtin.apt_repository:
-    repo: "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_24.x nodistro main"
-    filename: nodesource
-    state: present
-    update_cache: true
-  tags:
-    - initial-setup
-    - js
-
-- name: "Install nodejs"
-  become: true
-  ansible.builtin.apt:
-    name: nodejs
-    state: present
-    update_cache: false
-  tags:
-    - initial-setup
-    - js
-
-- name: "Clean up temporary files"
-  become: true
-  ansible.builtin.file:
-    path: /tmp/nodesource-repo.gpg.key
-    state: absent
+- name: "Install Node {{ node.node_version }} via nvm and set default"
+  ansible.builtin.shell: |
+    export NVM_DIR="$HOME/.nvm"
+    . "$NVM_DIR/nvm.sh"
+    nvm install {{ node.node_version }}
+    nvm alias default {{ node.node_version }}
+  args:
+    executable: /bin/bash
+    creates: "{{ ansible_env.HOME }}/.nvm/alias/default"
   tags:
     - initial-setup
     - js

@@ -1,9 +1,19 @@
-- name: "Remove neovim directory if exists"
+- name: "Remove neovim source directory if exists (Debian)"
   ansible.builtin.file:
     path: "{{ ansible_env.HOME }}/neovim"
     state: absent
+  when: ansible_facts.os_family == "Debian"
   tags:
     - cleanup
+    - initial-setup
+    - nvim
+
+- name: "Install Neovim (macOS)"
+  community.general.homebrew:
+    name: "{{ neovim.brew_formulae }}"
+    state: present
+  when: ansible_facts.os_family == "Darwin"
+  tags:
     - initial-setup
     - nvim
 
@@ -26,7 +36,7 @@
     - initial-setup
     - nvim
 
-- name: "Install Neovim build dependencies"
+- name: "Install Neovim build dependencies (Debian)"
   become: true
   ansible.builtin.apt:
     name:
@@ -37,33 +47,37 @@
       - curl
       - pkg-config
     state: present
+  when: ansible_facts.os_family == "Debian"
   tags:
     - initial-setup
     - nvim
 
-- name: "Clone Neovim"
+- name: "Clone Neovim (Debian)"
   ansible.builtin.git:
     repo: 'https://github.com/neovim/neovim.git'
     dest: "{{ ansible_env.HOME }}/neovim"
     clone: yes
     update: yes
+  when: ansible_facts.os_family == "Debian"
   tags:
     - initial-setup
     - nvim
 
-- name: "Build neovim"
+- name: "Build neovim (Debian)"
   ansible.builtin.command:
     cmd: make -j 20
     chdir: "{{ ansible_env.HOME }}/neovim"
+  when: ansible_facts.os_family == "Debian"
   tags:
     - initial-setup
     - nvim
 
-- name: "Install neovim"
+- name: "Install neovim (Debian)"
   become: true
   ansible.builtin.command:
     cmd: make install
     chdir: "{{ ansible_env.HOME }}/neovim"
+  when: ansible_facts.os_family == "Debian"
   tags:
     - initial-setup
     - nvim

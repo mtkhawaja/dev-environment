@@ -3,6 +3,7 @@
   ansible.builtin.apt:
     update_cache: true
     cache_valid_time: 3600
+  when: ansible_facts.os_family == "Debian"
   tags:
     - initial-setup
     - packages
@@ -16,6 +17,25 @@
     - { packages: [ "apt-transport-https", "gnupg", "ca-certificates" ], description: "Package management dependencies" }
     - { packages: [ "fonts-powerline" ], description: "Powerline fonts" }
     - { packages: [ "locales", "locales-all" ], description: "Locale support" }
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - initial-setup
+    - packages
+
+- name: "Install core packages (macOS)"
+  community.general.homebrew:
+    name: "{{ core.brew_formulae }}"
+    state: present
+  when: ansible_facts.os_family == "Darwin"
+  tags:
+    - initial-setup
+    - packages
+
+- name: "Install powerline/nerd fonts (macOS)"
+  community.general.homebrew_cask:
+    name: "{{ core.brew_cask_fonts }}"
+    state: present
+  when: ansible_facts.os_family == "Darwin"
   tags:
     - initial-setup
     - packages

@@ -1,4 +1,4 @@
-- name: "Install bitwarden CLI"
+- name: "Install bitwarden CLI (Debian)"
   block:
     - name: "Ensure bitwarden directories exist"
       ansible.builtin.file:
@@ -15,6 +15,16 @@
         creates: "{{ ansible_env.HOME }}/.local/bin/tools/bitwarden/bin/bw"
         extra_opts:
           - "-j"  # Extract just the files without directory structure
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - initial-setup
+    - bitwarden
+
+- name: "Install Bitwarden CLI (macOS)"
+  community.general.homebrew:
+    name: "{{ bitwarden.brew_formulae }}"
+    state: present
+  when: ansible_facts.os_family == "Darwin"
   tags:
     - initial-setup
     - bitwarden

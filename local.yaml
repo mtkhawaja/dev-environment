@@ -1,5 +1,7 @@
 - hosts: localhost
   connection: local
+  vars_files:
+    - src/ansible/vars/main.yml
   pre_tasks:
     - import_tasks: src/ansible/tasks/pre_tasks.yaml
     - import_tasks: src/ansible/tasks/directories.yaml
@@ -12,7 +14,9 @@
     - import_tasks: src/ansible/tasks/neovim.yaml
     - import_tasks: src/ansible/tasks/java.yaml
     - import_tasks: src/ansible/tasks/js.yaml
+    - import_tasks: src/ansible/tasks/bun.yaml
     - import_tasks: src/ansible/tasks/bitwarden-cli.yaml
     - import_tasks: src/ansible/tasks/python.yaml
     - import_tasks: src/ansible/tasks/yazi.yaml
     - import_tasks: src/ansible/tasks/go.yaml
+    - import_tasks: src/ansible/tasks/modern-cli.yaml

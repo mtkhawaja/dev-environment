@@ -1,28 +1,22 @@
-- name: Install optional Yazi dependencies
+- name: Install optional Yazi dependencies (Debian)
   become: true
   apt:
-    name:
-      - ffmpeg
-      - p7zip-full
-      - poppler-utils
-      - fd-find
-      - ripgrep
-      - fzf
-      - zoxide
-      - imagemagick
+    name: "{{ yazi.apt_packages }}"
     state: present
     update_cache: true
+  when: ansible_facts.os_family == "Debian"
   tags:
     - yazi
     - cli-tools
 
-- name: Ensure fd is symlinked as fd (for compatibility)
+- name: Ensure fd is symlinked as fd (for compatibility) (Debian)
   become: true
   file:
     src: /usr/bin/fdfind
     dest: /usr/local/bin/fd
     state: link
     force: true
+  when: ansible_facts.os_family == "Debian"
   tags:
     - yazi
 
@@ -34,36 +28,40 @@
   tags:
     - yazi
 
-- name: Download Yazi latest release binary
+- name: Download Yazi latest release binary (Debian)
   get_url:
     url: "https://github.com/sxyazi/yazi/releases/latest/download/yazi-x86_64-unknown-linux-gnu.zip"
     dest: "/tmp/yazi.zip"
     mode: '0644'
+  when: ansible_facts.os_family == "Debian"
   tags:
     - yazi
 
-- name: Unzip Yazi binary to ~/.local/bin
+- name: Unzip Yazi binary to ~/.local/bin (Debian)
   unarchive:
     src: "/tmp/yazi.zip"
     dest: "{{ ansible_env.HOME }}/.local/bin"
     remote_src: yes
     extra_opts: [ "-j" ]  # flatten archive structure
+  when: ansible_facts.os_family == "Debian"
   tags:
     - yazi
 
-- name: Make Yazi executable
+- name: Make Yazi executable (Debian)
   file:
     path: "{{ ansible_env.HOME }}/.local/bin/yazi"
     mode: '0755'
     state: file
+  when: ansible_facts.os_family == "Debian"
   tags:
     - yazi
 
-- name: Add .local/bin to PATH in .zshenv if not present
-  lineinfile:
-    path: "{{ ansible_env.HOME }}/.zshenv"
-    create: yes
-    line: 'export PATH="$HOME/.local/bin:$PATH"'
+- name: Install Yazi and dependencies (macOS)
+  community.general.homebrew:
+    name: "{{ yazi.brew_formulae }}"
     state: present
+  when: ansible_facts.os_family == "Darwin"
   tags:
     - yazi
+
+# ~/.local/bin is added to PATH in the dotfiles repo (.zshenv), not here.
