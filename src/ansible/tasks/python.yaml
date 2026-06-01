@@ -9,14 +9,14 @@
     curl -LsSf https://astral.sh/uv/install.sh | env UV_NO_MODIFY_PATH=1 sh
   args:
     executable: /bin/bash
-    creates: "{{ ansible_env.HOME }}/.local/bin/uv"
+    creates: "{{ ansible_facts.env.HOME }}/.local/bin/uv"
   tags:
     - initial-setup
     - python
     - uv
 
 - name: "Install Python versions via uv (3.13, 3.12)"
-  ansible.builtin.command: "{{ ansible_env.HOME }}/.local/bin/uv python install 3.13 3.12"
+  ansible.builtin.command: "{{ ansible_facts.env.HOME }}/.local/bin/uv python install 3.13 3.12"
   register: uv_python_install
   changed_when: "'Installed' in uv_python_install.stdout"
   tags:
@@ -24,21 +24,21 @@
     - python
 
 - name: "Set the default python (3.13) on PATH via uv"
-  ansible.builtin.command: "{{ ansible_env.HOME }}/.local/bin/uv python install --default 3.13"
+  ansible.builtin.command: "{{ ansible_facts.env.HOME }}/.local/bin/uv python install --default 3.13"
   args:
-    creates: "{{ ansible_env.HOME }}/.local/bin/python"
+    creates: "{{ ansible_facts.env.HOME }}/.local/bin/python"
   tags:
     - initial-setup
     - python
 
 - name: "Install global Python CLI tools via uv"
-  ansible.builtin.command: "{{ ansible_env.HOME }}/.local/bin/uv tool install {{ item }}"
+  ansible.builtin.command: "{{ ansible_facts.env.HOME }}/.local/bin/uv tool install {{ item }}"
   loop:
     - black
     - mypy
     - pylint
   args:
-    creates: "{{ ansible_env.HOME }}/.local/bin/{{ item }}"
+    creates: "{{ ansible_facts.env.HOME }}/.local/bin/{{ item }}"
   tags:
     - initial-setup
     - python

@@ -22,7 +22,7 @@
 
 - name: Ensure ~/.local/bin exists for Yazi binary
   file:
-    path: "{{ ansible_env.HOME }}/.local/bin"
+    path: "{{ ansible_facts.env.HOME }}/.local/bin"
     state: directory
     mode: '0755'
   tags:
@@ -40,7 +40,7 @@
 - name: Unzip Yazi binary to ~/.local/bin (Debian)
   unarchive:
     src: "/tmp/yazi.zip"
-    dest: "{{ ansible_env.HOME }}/.local/bin"
+    dest: "{{ ansible_facts.env.HOME }}/.local/bin"
     remote_src: yes
     extra_opts: [ "-j" ]  # flatten archive structure
   when: ansible_facts.os_family == "Debian"
@@ -49,7 +49,7 @@
 
 - name: Make Yazi executable (Debian)
   file:
-    path: "{{ ansible_env.HOME }}/.local/bin/yazi"
+    path: "{{ ansible_facts.env.HOME }}/.local/bin/yazi"
     mode: '0755'
     state: file
   when: ansible_facts.os_family == "Debian"

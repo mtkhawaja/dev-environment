@@ -1,6 +1,6 @@
 - name: "Create standard user directories"
   ansible.builtin.file:
-    path: "{{ ansible_env.HOME }}/{{ item.path }}"
+    path: "{{ ansible_facts.env.HOME }}/{{ item.path }}"
     state: directory
     mode: "{{ item.mode | default('0755') }}"
   loop:

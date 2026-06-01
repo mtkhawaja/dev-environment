@@ -63,7 +63,7 @@
 
 - name: "Ensure ~/.local/bin exists (Debian)"
   ansible.builtin.file:
-    path: "{{ ansible_env.HOME }}/.local/bin"
+    path: "{{ ansible_facts.env.HOME }}/.local/bin"
     state: directory
     mode: '0755'
   when: ansible_facts.os_family == "Debian"
@@ -73,10 +73,10 @@
 - name: "Install release-binary modern CLI tools (Debian)"
   ansible.builtin.unarchive:
     src: "{{ item.url }}"
-    dest: "{{ ansible_env.HOME }}/.local/bin"
+    dest: "{{ ansible_facts.env.HOME }}/.local/bin"
     remote_src: true
     extra_opts: "{{ item.extra_opts }}"
-    creates: "{{ ansible_env.HOME }}/.local/bin/{{ item.name }}"
+    creates: "{{ ansible_facts.env.HOME }}/.local/bin/{{ item.name }}"
   loop: "{{ modern_cli.release_binaries }}"
   when: ansible_facts.os_family == "Debian"
   tags:
@@ -84,7 +84,7 @@
 
 - name: "Ensure release binaries are executable (Debian)"
   ansible.builtin.file:
-    path: "{{ ansible_env.HOME }}/.local/bin/{{ item.name }}"
+    path: "{{ ansible_facts.env.HOME }}/.local/bin/{{ item.name }}"
     mode: '0755'
     state: file
   loop: "{{ modern_cli.release_binaries }}"

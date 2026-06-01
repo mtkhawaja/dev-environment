@@ -10,7 +10,7 @@
     curl -fsSL https://bun.sh/install | PATH="$HOME/.bun/bin:$PATH" bash
   args:
     executable: /bin/bash
-    creates: "{{ ansible_env.HOME }}/.bun/bin/bun"
+    creates: "{{ ansible_facts.env.HOME }}/.bun/bin/bun"
   tags:
     - initial-setup
     - bun

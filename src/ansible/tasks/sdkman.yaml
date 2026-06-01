@@ -1,6 +1,6 @@
 - name: Check if SDKMAN is installed
   ansible.builtin.stat:
-    path: "{{ ansible_env.HOME }}/.sdkman/bin/sdkman-init.sh"
+    path: "{{ ansible_facts.env.HOME }}/.sdkman/bin/sdkman-init.sh"
   register: sdkman_init
 
 - name: Download SDKMAN installer
@@ -15,7 +15,7 @@
 - name: Install SDKMAN
   ansible.builtin.shell: "{{ sdkman_shell }} /tmp/sdkman_installer.sh"
   args:
-    creates: "{{ ansible_env.HOME }}/.sdkman/bin/sdkman-init.sh"
+    creates: "{{ ansible_facts.env.HOME }}/.sdkman/bin/sdkman-init.sh"
   when: not sdkman_init.stat.exists
 
 # Shell init (sourcing sdkman-init.sh) lives in the dotfiles repo (.zshenv), not here.

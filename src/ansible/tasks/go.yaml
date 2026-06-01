@@ -44,8 +44,8 @@
     state: directory
     mode: '0755'
   loop:
-    - "{{ ansible_env.HOME }}/go"
-    - "{{ ansible_env.HOME }}/go/bin"
+    - "{{ ansible_facts.env.HOME }}/go"
+    - "{{ ansible_facts.env.HOME }}/go/bin"
   tags:
     - go
 
@@ -57,6 +57,6 @@
     command -v go >/dev/null && go install golang.org/x/tools/gopls@latest
   args:
     executable: /bin/bash
-    creates: "{{ ansible_env.HOME }}/go/bin/gopls"
+    creates: "{{ ansible_facts.env.HOME }}/go/bin/gopls"
   tags:
     - go

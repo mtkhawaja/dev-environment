@@ -3,7 +3,7 @@
 
 - name: "Check if nvm is installed"
   ansible.builtin.stat:
-    path: "{{ ansible_env.HOME }}/.nvm/nvm.sh"
+    path: "{{ ansible_facts.env.HOME }}/.nvm/nvm.sh"
   register: nvm_installed
   tags:
     - initial-setup
@@ -16,7 +16,7 @@
     curl -fsSL "https://raw.githubusercontent.com/nvm-sh/nvm/{{ node.nvm_version }}/install.sh" | PROFILE=/dev/null bash
   args:
     executable: /bin/bash
-    creates: "{{ ansible_env.HOME }}/.nvm/nvm.sh"
+    creates: "{{ ansible_facts.env.HOME }}/.nvm/nvm.sh"
   when: not nvm_installed.stat.exists
   tags:
     - initial-setup
@@ -32,7 +32,7 @@
     nvm alias default 'lts/*'
   args:
     executable: /bin/bash
-    creates: "{{ ansible_env.HOME }}/.nvm/alias/default"
+    creates: "{{ ansible_facts.env.HOME }}/.nvm/alias/default"
   tags:
     - initial-setup
     - js
