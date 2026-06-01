@@ -39,6 +39,14 @@ is generated from the Ansible task files in `src/ansible/tasks/` — when you ad
 | **Neovim** | Modern Vim fork       | Fast, extensible modal editor. Built from `master` on Debian; installed via Homebrew on macOS. |
 | **packer.nvim**                  | Neovim plugin manager | Declarative plugin management for the Neovim config (shipped via the dotfiles repo).            |
 
+## AI assistant
+
+*(`claude-code.yaml`)*
+
+| Tool | What it is | Why it's useful |
+|------|------------|-----------------|
+| **Claude Code** (`claude`) | Agentic coding CLI | Anthropic's terminal coding agent. Self-updating; installed via the official `claude.ai/install.sh` script to `~/.local/bin/claude` on both OSes. |
+
 ## Core CLI utilities
 
 *(`tools.yaml`)*

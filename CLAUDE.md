@@ -37,7 +37,7 @@ docker build --build-arg TAGS="--tags modern-cli" -t mtkhawaja/dev-env:latest . 
 
 ## Architecture
 
-- **`local.yaml`** is the single play and the entry point. It loads `src/ansible/vars/main.yml` via `vars_files`, runs `pre_tasks` (apt cache, base packages) and `directories`, then imports one task file per area from `src/ansible/tasks/` (zsh, dotfiles, tools, sdkman, neovim, java, js, bitwarden-cli, python, yazi, go, modern-cli). Adding a new area = new file in `src/ansible/tasks/` + an `import_tasks` line in `local.yaml`.
+- **`local.yaml`** is the single play and the entry point. It loads `src/ansible/vars/main.yml` via `vars_files`, runs `pre_tasks` (apt cache, base packages) and `directories`, then imports one task file per area from `src/ansible/tasks/` (zsh, dotfiles, tools, sdkman, neovim, java, js, bun, bitwarden-cli, python, yazi, go, modern-cli, claude-code). Adding a new area = new file in `src/ansible/tasks/` + an `import_tasks` line in `local.yaml`.
 - **`setup.sh`** is the bootstrap layer, kept separate from the playbook: it detects the OS (`uname`), installs Ansible (Homebrew on macOS, `ppa:ansible/ansible` apt on Linux), installs collections from `requirements.yml`, then hands off to `ansible-pull`.
 - **`Dockerfile`** mirrors a real run on `ubuntu:noble` in a multi-stage build (`base` → `setup` creates the `mtkhawaja` sudo user → `runnable` copies the repo and runs `ansible-playbook $TAGS local.yaml`). Use it to verify changes without touching your own machine.
 - Dotfiles are **not** in this repo — `dotfiles.yaml` clones `github.com/mtkhawaja/dotfiles` (force-overwriting, backing up uncommitted local changes first) and applies them with GNU Stow.

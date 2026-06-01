@@ -1,0 +1,14 @@
+---
+# Claude Code (cross-platform: macOS + Debian/WSL). Official installer -> ~/.local/bin/claude.
+# Self-updating CLI with no apt package, so the native installer is used on both
+# OSes (matching the nvm/bun/uv/sdkman curl-installer pattern). The installer
+# does not edit rc files; ~/.local/bin is already on PATH (set in the dotfiles).
+- name: "Install Claude Code"
+  ansible.builtin.shell: |
+    curl -fsSL https://claude.ai/install.sh | bash
+  args:
+    executable: /bin/bash
+    creates: "{{ ansible_facts.env.HOME }}/.local/bin/claude"
+  tags:
+    - initial-setup
+    - claude-code
