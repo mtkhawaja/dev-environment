@@ -116,9 +116,8 @@ is generated from the Ansible task files in `src/ansible/tasks/` — when you ad
 |------|------------|-----------------|
 | **uv** | Python package/version manager | Astral's fast all-in-one tool: installs interpreters and CLI tools, downloads prebuilt standalone Pythons (no system build deps). Replaces pyenv + pipx. |
 | **Python 3.13 & 3.12** | Interpreters | Installed via uv; 3.13 is the default `python`/`python3` on `PATH`, 3.12 available alongside. |
-| **black** | Formatter | Opinionated, deterministic code formatting. Installed as a `uv tool`. |
+| **ruff** | Linter & formatter | Astral's fast all-in-one linter + formatter; replaces black and pylint. Installed as a `uv tool`. |
 | **mypy** | Static type checker | Catches type errors before runtime. Installed as a `uv tool`. |
-| **pylint** | Linter | Flags bugs, smells, and style issues. Installed as a `uv tool`. |
 
 ### Go *(`go.yaml`)*
 

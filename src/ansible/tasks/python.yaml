@@ -34,9 +34,8 @@
 - name: "Install global Python CLI tools via uv"
   ansible.builtin.command: "{{ ansible_facts.env.HOME }}/.local/bin/uv tool install {{ item }}"
   loop:
-    - black
+    - ruff
     - mypy
-    - pylint
     - pyright
   args:
     creates: "{{ ansible_facts.env.HOME }}/.local/bin/{{ item }}"
