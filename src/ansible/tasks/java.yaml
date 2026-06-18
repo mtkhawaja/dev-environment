@@ -25,3 +25,47 @@
   tags:
     - java
     - sdkman
+
+# jdtls (Eclipse JDT Language Server, Java LSP).
+- name: "Install jdtls (macOS)"
+  community.general.homebrew:
+    name: "{{ jdtls.brew_formulae }}"
+    state: present
+  when: ansible_facts.os_family == "Darwin"
+  tags:
+    - java
+    - jdtls
+
+# Debian: no apt package. Extract the arch-independent Eclipse tarball into
+# ~/.local/share/jdtls and symlink its bin/jdtls launcher onto PATH. The
+# launcher needs python3 (system) + java (SDKMAN, above).
+- name: "Create jdtls install directory (Debian)"
+  ansible.builtin.file:
+    path: "{{ ansible_facts.env.HOME }}/.local/share/jdtls"
+    state: directory
+    mode: '0755'
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - java
+    - jdtls
+
+- name: "Download and extract jdtls (Debian)"
+  ansible.builtin.unarchive:
+    src: "{{ jdtls.debian_tarball_url }}"
+    dest: "{{ ansible_facts.env.HOME }}/.local/share/jdtls"
+    remote_src: true
+    creates: "{{ ansible_facts.env.HOME }}/.local/share/jdtls/bin/jdtls"
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - java
+    - jdtls
+
+- name: "Symlink jdtls launcher onto PATH (Debian)"
+  ansible.builtin.file:
+    src: "{{ ansible_facts.env.HOME }}/.local/share/jdtls/bin/jdtls"
+    dest: "{{ ansible_facts.env.HOME }}/.local/bin/jdtls"
+    state: link
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - java
+    - jdtls

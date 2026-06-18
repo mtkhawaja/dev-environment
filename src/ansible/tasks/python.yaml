@@ -37,6 +37,7 @@
     - black
     - mypy
     - pylint
+    - pyright
   args:
     creates: "{{ ansible_facts.env.HOME }}/.local/bin/{{ item }}"
   tags:
