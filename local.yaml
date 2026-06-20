@@ -24,3 +24,4 @@
     - import_tasks: src/ansible/tasks/modern-cli.yaml
     - import_tasks: src/ansible/tasks/apps.yaml
     - import_tasks: src/ansible/tasks/claude-code.yaml
+    - import_tasks: src/ansible/tasks/codex.yaml

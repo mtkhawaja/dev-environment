@@ -1,0 +1,14 @@
+---
+# OpenAI Codex CLI (cross-platform: macOS + Debian/WSL). Official installer.
+# No apt/brew package, so the curl installer is used on both OSes —
+# matching the claude-code/nvm/bun/uv/sdkman pattern.
+
+- name: "Install Codex CLI"
+  ansible.builtin.shell: |
+    curl -fsSL https://chatgpt.com/codex/install.sh | sh
+  args:
+    executable: /bin/sh
+    creates: "{{ ansible_facts.env.HOME }}/.local/bin/codex"
+  tags:
+    - initial-setup
+    - codex-cli
