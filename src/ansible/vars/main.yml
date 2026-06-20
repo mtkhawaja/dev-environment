@@ -153,6 +153,17 @@ go:
   brew_formulae:
     - go
 
+# OpenTofu (Terraform fork). Unpinned on both platforms to track latest.
+# macOS: Homebrew formula. Debian: no apt package, so add OpenTofu's official
+# apt repo (Cloudsmith-hosted) and install the `tofu` package. The repo needs
+# two signing keys: the project key + the repo key.
+opentofu:
+  brew_formulae:
+    - opentofu
+  apt_key_url: "https://get.opentofu.org/opentofu.gpg"
+  apt_repo_key_url: "https://packages.opentofu.org/opentofu/tofu/gpgkey"
+  apt_repo: "deb [signed-by=/etc/apt/keyrings/opentofu.gpg,/etc/apt/keyrings/opentofu-repo.gpg] https://packages.opentofu.org/opentofu/tofu/any/ any main"
+
 bitwarden:
   brew_formulae:
     - bitwarden-cli
