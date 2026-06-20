@@ -164,6 +164,13 @@ opentofu:
   apt_repo_key_url: "https://packages.opentofu.org/opentofu/tofu/gpgkey"
   apt_repo: "deb [signed-by=/etc/apt/keyrings/opentofu.gpg,/etc/apt/keyrings/opentofu-repo.gpg] https://packages.opentofu.org/opentofu/tofu/any/ any main"
 
+# AWS CLI v2. macOS: Homebrew formula (awscli). Debian: apt only ships the
+# deprecated v1, so use AWS's official installer zip (always latest; x86_64).
+awscli:
+  brew_formulae:
+    - awscli
+  debian_installer_url: "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"
+
 bitwarden:
   brew_formulae:
     - bitwarden-cli

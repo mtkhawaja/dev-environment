@@ -1,0 +1,68 @@
+---
+# AWS CLI v2.
+#   macOS  -> Homebrew (awscli formula)
+#   Debian -> AWS official installer zip (apt only ships deprecated v1; x86_64)
+
+# ---------- macOS ----------
+- name: "Install AWS CLI (macOS)"
+  community.general.homebrew:
+    name: "{{ awscli.brew_formulae }}"
+    state: present
+  when: ansible_facts.os_family == "Darwin"
+  tags:
+    - initial-setup
+    - awscli
+
+# ---------- Debian / WSL ----------
+- name: "Ensure unzip is available for the AWS CLI installer (Debian)"
+  become: true
+  ansible.builtin.apt:
+    name: unzip
+    state: present
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - initial-setup
+    - awscli
+
+- name: "Download AWS CLI installer (Debian)"
+  ansible.builtin.get_url:
+    url: "{{ awscli.debian_installer_url }}"
+    dest: /tmp/awscliv2.zip
+    mode: '0644'
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - initial-setup
+    - awscli
+
+- name: "Unpack AWS CLI installer (Debian)"
+  ansible.builtin.unarchive:
+    src: /tmp/awscliv2.zip
+    dest: /tmp
+    remote_src: true
+    creates: /tmp/aws/install
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - initial-setup
+    - awscli
+
+- name: "Run AWS CLI installer (Debian)"
+  become: true
+  ansible.builtin.command: /tmp/aws/install
+  args:
+    creates: /usr/local/bin/aws
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - initial-setup
+    - awscli
+
+- name: "Clean up AWS CLI installer files (Debian)"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /tmp/awscliv2.zip
+    - /tmp/aws
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - initial-setup
+    - awscli
