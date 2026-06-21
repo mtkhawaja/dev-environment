@@ -20,6 +20,7 @@
     - import_tasks: src/ansible/tasks/yazi.yaml
     - import_tasks: src/ansible/tasks/go.yaml
     - import_tasks: src/ansible/tasks/opentofu.yaml
+    - import_tasks: src/ansible/tasks/tflint.yaml
     - import_tasks: src/ansible/tasks/awscli.yaml
     - import_tasks: src/ansible/tasks/modern-cli.yaml
     - import_tasks: src/ansible/tasks/apps.yaml
