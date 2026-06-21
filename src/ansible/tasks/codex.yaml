@@ -9,6 +9,7 @@
   args:
     executable: /bin/sh
     creates: "{{ ansible_facts.env.HOME }}/.local/bin/codex"
+  ignore_errors: true
   tags:
     - initial-setup
     - codex-cli
