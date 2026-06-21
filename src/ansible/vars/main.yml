@@ -211,8 +211,7 @@ node:
   node_version: "--lts"
 
 # tflint (Terraform linter). No Homebrew formula — both macOS and Debian install
-# the upstream release zip into ~/.local/bin. Version is resolved at runtime via
-# the GitHub releases API so it always installs the latest stable release.
+# the upstream release zip into ~/.local/bin.
 # macOS: arm64 or amd64 based on ansible_facts.architecture. Debian: amd64 only.
 tflint:
-  releases_api_url: "https://api.github.com/repos/terraform-linters/tflint/releases/latest"
+  version: "0.63.1"
