@@ -1,14 +1,47 @@
 ---
 # tflint (Terraform linter). Cross-platform:
-#   macOS  -> Homebrew (tflint formula, tracks latest)
-#   Debian -> upstream release zip into ~/.local/bin (x86_64-only);
-#             version resolved at runtime via GitHub releases API
+#   macOS  -> upstream release zip into ~/.local/bin (arm64 or amd64)
+#   Debian -> upstream release zip into ~/.local/bin (x86_64-only)
+# No Homebrew formula exists; version resolved at runtime via GitHub releases API.
 
 # ---------- macOS ----------
-- name: "Install tflint (macOS)"
-  community.general.homebrew:
-    name: "{{ tflint.brew_formulae }}"
-    state: present
+- name: "Fetch latest tflint release version (macOS)"
+  ansible.builtin.uri:
+    url: "{{ tflint.releases_api_url }}"
+    return_content: true
+  register: tflint_release_macos
+  when: ansible_facts.os_family == "Darwin"
+  tags:
+    - initial-setup
+    - tflint
+
+- name: "Ensure ~/.local/bin exists (macOS)"
+  ansible.builtin.file:
+    path: "{{ ansible_facts.env.HOME }}/.local/bin"
+    state: directory
+    mode: '0755'
+  when: ansible_facts.os_family == "Darwin"
+  tags:
+    - initial-setup
+    - tflint
+
+- name: "Install tflint from latest release zip (macOS)"
+  ansible.builtin.unarchive:
+    src: "https://github.com/terraform-linters/tflint/releases/download/{{ tflint_release_macos.json.tag_name }}/tflint_darwin_{{ 'arm64' if ansible_facts.architecture == 'arm64' else 'amd64' }}.zip"
+    dest: "{{ ansible_facts.env.HOME }}/.local/bin"
+    remote_src: true
+    extra_opts: ["-j"]
+    creates: "{{ ansible_facts.env.HOME }}/.local/bin/tflint"
+  when: ansible_facts.os_family == "Darwin"
+  tags:
+    - initial-setup
+    - tflint
+
+- name: "Ensure tflint binary is executable (macOS)"
+  ansible.builtin.file:
+    path: "{{ ansible_facts.env.HOME }}/.local/bin/tflint"
+    mode: '0755'
+    state: file
   when: ansible_facts.os_family == "Darwin"
   tags:
     - initial-setup
@@ -17,7 +50,7 @@
 # ---------- Debian / WSL ----------
 - name: "Fetch latest tflint release version (Debian)"
   ansible.builtin.uri:
-    url: "{{ tflint.debian_releases_api_url }}"
+    url: "{{ tflint.releases_api_url }}"
     return_content: true
   register: tflint_release
   when: ansible_facts.os_family == "Debian"
