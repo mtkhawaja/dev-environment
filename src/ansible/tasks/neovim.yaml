@@ -17,25 +17,6 @@
     - initial-setup
     - nvim
 
-- name: "Create Packer plugin directory"
-  ansible.builtin.file:
-    path: "{{ ansible_facts.env.HOME }}/.local/share/nvim/site/pack/packer/start"
-    state: directory
-    mode: '0755'
-  tags:
-    - initial-setup
-    - nvim
-
-- name: "Get Packer"
-  ansible.builtin.git:
-    repo: 'https://github.com/wbthomason/packer.nvim'
-    dest: "{{ ansible_facts.env.HOME }}/.local/share/nvim/site/pack/packer/start/packer.nvim"
-    clone: yes
-    update: yes
-  tags:
-    - initial-setup
-    - nvim
-
 - name: "Install Neovim build dependencies (Debian)"
   become: true
   ansible.builtin.apt:
@@ -77,6 +58,40 @@
   ansible.builtin.command:
     cmd: make install
     chdir: "{{ ansible_facts.env.HOME }}/neovim"
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - initial-setup
+    - nvim
+
+- name: "Ensure ~/.local/bin exists (Debian)"
+  ansible.builtin.file:
+    path: "{{ ansible_facts.env.HOME }}/.local/bin"
+    state: directory
+    mode: '0755'
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - initial-setup
+    - nvim
+
+- name: "Install Neovim tooling release binaries: tree-sitter, stylua (Debian)"
+  ansible.builtin.unarchive:
+    src: "{{ item.url }}"
+    dest: "{{ ansible_facts.env.HOME }}/.local/bin"
+    remote_src: true
+    extra_opts: "{{ item.extra_opts }}"
+    creates: "{{ ansible_facts.env.HOME }}/.local/bin/{{ item.name }}"
+  loop: "{{ neovim.release_binaries }}"
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - initial-setup
+    - nvim
+
+- name: "Ensure Neovim tooling binaries are executable (Debian)"
+  ansible.builtin.file:
+    path: "{{ ansible_facts.env.HOME }}/.local/bin/{{ item.name }}"
+    mode: '0755'
+    state: file
+  loop: "{{ neovim.release_binaries }}"
   when: ansible_facts.os_family == "Debian"
   tags:
     - initial-setup

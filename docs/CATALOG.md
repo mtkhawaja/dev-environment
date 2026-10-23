@@ -37,7 +37,8 @@ is generated from the Ansible task files in `src/ansible/tasks/` — when you ad
 | Tool                             | What it is            | Why it's useful                                                                                 |
 |----------------------------------|-----------------------|-------------------------------------------------------------------------------------------------|
 | **Neovim** | Modern Vim fork       | Fast, extensible modal editor. Built from `master` on Debian; installed via Homebrew on macOS. |
-| **packer.nvim**                  | Neovim plugin manager | Declarative plugin management for the Neovim config (shipped via the dotfiles repo).            |
+| **tree-sitter** *(`tree-sitter-cli`)* | Parser generator CLI | Required by nvim-treesitter's `main` branch to compile syntax parsers locally. Release binary on Debian (x86_64). |
+| **StyLua**                       | Lua formatter         | Formats the Neovim config (`.stylua.toml`); also what the config repo's CI checks. Release binary on Debian (x86_64). |
 
 ## AI assistant
 

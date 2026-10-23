@@ -145,9 +145,25 @@ jdtls:
   version: "1.58.0"
   debian_tarball_url: "https://download.eclipse.org/jdtls/milestones/1.58.0/jdt-language-server-1.58.0-202604151538.tar.gz"
 
+neovim_versions:
+  tree_sitter: "0.27.1"
+  stylua: "2.6.0"
+
 neovim:
+  # tree-sitter-cli compiles treesitter parsers (nvim-treesitter `main`); stylua formats the Lua config.
   brew_formulae:
     - neovim
+    - tree-sitter-cli
+    - stylua
+
+  # Debian/WSL: release binaries extracted into ~/.local/bin (x86_64 only). Both zips have files at root, hence -j.
+  release_binaries:
+    - name: tree-sitter
+      url: "https://github.com/tree-sitter/tree-sitter/releases/download/v{{ neovim_versions.tree_sitter }}/tree-sitter-cli-linux-x64.zip"
+      extra_opts: ["-j"]
+    - name: stylua
+      url: "https://github.com/JohnnyMorganz/StyLua/releases/download/v{{ neovim_versions.stylua }}/stylua-linux-x86_64.zip"
+      extra_opts: ["-j"]
 
 go:
   brew_formulae:
