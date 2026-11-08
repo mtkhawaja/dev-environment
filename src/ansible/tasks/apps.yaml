@@ -1,7 +1,7 @@
 ---
 # Desktop GUI applications (the whole file is skipped when headless; see
 # local.yaml). bloom + AeroSpace are macOS-only; VLC, Ghostty and JetBrains
-# Toolbox are cross-platform (Homebrew Cask on macOS; apt, or a pinned tarball
+# Toolbox are cross-platform (Homebrew Cask on macOS; apt, or the latest tarball
 # for Toolbox, on Debian/WSL).
 
 # Homebrew no longer auto-taps third-party taps (AeroSpace) from a qualified name.
@@ -97,11 +97,11 @@
     - apps
     - jetbrains-toolbox
 
-# JetBrains Toolbox (Debian): unpack the pinned tarball into a versioned dir and
-# link the launcher onto PATH. A version bump unpacks alongside and relinks.
+# JetBrains Toolbox (Debian): unpack the latest tarball once and link the
+# launcher onto PATH; Toolbox self-installs and self-updates after first launch.
 - name: "Create JetBrains Toolbox directory (Debian)"
   ansible.builtin.file:
-    path: "{{ ansible_facts.env.HOME }}/.local/share/jetbrains-toolbox/{{ apps.jetbrains_toolbox_version }}"
+    path: "{{ ansible_facts.env.HOME }}/.local/share/jetbrains-toolbox"
     state: directory
     mode: '0755'
   when: ansible_facts.os_family == "Debian"
@@ -113,10 +113,10 @@
 - name: "Install JetBrains Toolbox from tarball (Debian)"
   ansible.builtin.unarchive:
     src: "{{ apps.jetbrains_toolbox_url }}"
-    dest: "{{ ansible_facts.env.HOME }}/.local/share/jetbrains-toolbox/{{ apps.jetbrains_toolbox_version }}"
+    dest: "{{ ansible_facts.env.HOME }}/.local/share/jetbrains-toolbox"
     remote_src: true
     extra_opts: ["--strip-components=1"]
-    creates: "{{ ansible_facts.env.HOME }}/.local/share/jetbrains-toolbox/{{ apps.jetbrains_toolbox_version }}/bin/jetbrains-toolbox"
+    creates: "{{ ansible_facts.env.HOME }}/.local/share/jetbrains-toolbox/bin/jetbrains-toolbox"
   when: ansible_facts.os_family == "Debian"
   tags:
     - initial-setup
@@ -125,7 +125,7 @@
 
 - name: "Link JetBrains Toolbox onto PATH (Debian)"
   ansible.builtin.file:
-    src: "{{ ansible_facts.env.HOME }}/.local/share/jetbrains-toolbox/{{ apps.jetbrains_toolbox_version }}/bin/jetbrains-toolbox"
+    src: "{{ ansible_facts.env.HOME }}/.local/share/jetbrains-toolbox/bin/jetbrains-toolbox"
     dest: "{{ ansible_facts.env.HOME }}/.local/bin/jetbrains-toolbox"
     state: link
   when: ansible_facts.os_family == "Debian"

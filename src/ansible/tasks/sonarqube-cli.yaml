@@ -1,7 +1,7 @@
 ---
 # SonarQube CLI (`sonar`).
 #   macOS  -> Homebrew cask (Apple Silicon only)
-#   Debian -> pinned binary from SonarSource's CDN into ~/.local/bin (amd64 or arm64)
+#   Debian -> latest binary from SonarSource's CDN into ~/.local/bin (amd64 or arm64)
 
 - name: "Install SonarQube CLI (macOS)"
   community.general.homebrew_cask:
@@ -22,14 +22,32 @@
     - initial-setup
     - sonarqube-cli
 
-# get_url skips the download when the binary already exists (idempotent);
-# `sonar` can self-update after that.
-- name: "Install SonarQube CLI binary (Debian)"
-  ansible.builtin.get_url:
-    url: "{{ sonarqube_cli.linux_url }}"
-    dest: "{{ ansible_facts.env.HOME }}/.local/bin/sonar"
-    mode: '0755'
+# Installed once at the latest stable version; `sonar` can self-update after that.
+- name: "Check for an existing SonarQube CLI (Debian)"
+  ansible.builtin.stat:
+    path: "{{ ansible_facts.env.HOME }}/.local/bin/sonar"
+  register: sonar_bin
   when: ansible_facts.os_family == "Debian"
   tags:
     - initial-setup
     - sonarqube-cli
+
+- name: "Install the latest SonarQube CLI (Debian)"
+  when: ansible_facts.os_family == "Debian" and not sonar_bin.stat.exists
+  tags:
+    - initial-setup
+    - sonarqube-cli
+  block:
+    - name: "Look up the latest SonarQube CLI version (Debian)"
+      ansible.builtin.uri:
+        url: "{{ sonarqube_cli.base_url }}/stable.version"
+        return_content: true
+      register: sonar_stable
+
+    - name: "Download the SonarQube CLI binary (Debian)"
+      ansible.builtin.get_url:
+        url: "{{ sonarqube_cli.linux_url }}"
+        dest: "{{ ansible_facts.env.HOME }}/.local/bin/sonar"
+        mode: '0755'
+      vars:
+        sonar_version: "{{ sonar_stable.content | trim }}"

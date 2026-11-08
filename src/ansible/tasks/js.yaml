@@ -1,13 +1,33 @@
 ---
 # Node.js via nvm (cross-platform: macOS + Debian/WSL).
 
+# nvm's installer is versioned, so look up the latest release tag first (only
+# when nvm isn't installed yet).
+- name: "Check for an existing nvm install"
+  ansible.builtin.stat:
+    path: "{{ ansible_facts.env.HOME }}/.nvm/nvm.sh"
+  register: nvm_sh
+  tags:
+    - initial-setup
+    - js
+
+- name: "Look up the latest nvm release"
+  ansible.builtin.uri:
+    url: "{{ node.nvm_latest_api }}"
+    return_content: true
+  register: nvm_latest
+  when: not nvm_sh.stat.exists
+  tags:
+    - initial-setup
+    - js
+
 # PROFILE=/dev/null stops the nvm installer from editing rc files —
 # the NVM_DIR sourcing lines live in the dotfiles repo (.zshenv).
 - name: "Install nvm"
   ansible.builtin.import_tasks: common/install-script.yaml
   vars:
-    installer_name: "nvm {{ node.nvm_version }}"
-    installer_url: "https://raw.githubusercontent.com/nvm-sh/nvm/{{ node.nvm_version }}/install.sh"
+    installer_name: nvm
+    installer_url: "https://raw.githubusercontent.com/nvm-sh/nvm/{{ nvm_latest.json.tag_name }}/install.sh"
     installer_creates: "{{ ansible_facts.env.HOME }}/.nvm/nvm.sh"
     installer_env:
       PROFILE: /dev/null

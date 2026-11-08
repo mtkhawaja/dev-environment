@@ -50,6 +50,16 @@
     - initial-setup
     - nvim
 
+- name: "Ensure unzip is available for .zip release archives (Debian)"
+  become: true
+  ansible.builtin.apt:
+    name: unzip
+    state: present
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - initial-setup
+    - nvim
+
 - name: "Install Neovim tooling release binaries: tree-sitter, stylua (Debian)"
   ansible.builtin.unarchive:
     src: "{{ item.url }}"

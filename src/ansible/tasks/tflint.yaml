@@ -1,6 +1,6 @@
 ---
 # tflint (Terraform linter). No Homebrew/apt package, so both OSes install the
-# upstream release zip (arm64 or amd64) into ~/.local/bin. Pinned in vars/main.yml.
+# latest upstream release zip (arm64 or amd64) into ~/.local/bin.
 
 - name: "Ensure unzip is available (Debian)"
   become: true

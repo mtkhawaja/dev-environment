@@ -1,5 +1,11 @@
 ---
 # Shared cross-platform configuration. Loaded by local.yaml via vars_files.
+#
+# Versions are NOT pinned: every tool installs the latest release available at
+# install time (package managers unpinned, `releases/latest/download/...` URLs,
+# or a "latest" lookup at runtime). Re-runs don't upgrade (idempotent `creates:`).
+# GitHub API "latest" lookups are anonymous (60 requests/hour), so they only run
+# when the tool isn't installed yet.
 
 # Server installs without a desktop: `-e headless=true` (or HEADLESS=true for
 # setup.sh) skips GUI apps and desktop-only packages. Always test it with
@@ -118,7 +124,7 @@ tools:
 # Desktop GUI apps (skipped when headless). bloom + AeroSpace are macOS-only (no
 # Linux equivalent in this dev-env); VLC and Ghostty are cross-platform
 # (Homebrew Cask on macOS, apt on Debian — Ubuntu's archive packages Ghostty);
-# JetBrains Toolbox is a cask on macOS and a pinned tarball on Debian.
+# JetBrains Toolbox is a cask on macOS and the latest tarball on Debian.
 apps:
   brew_taps:
     - nikitabobko/tap
@@ -134,21 +140,20 @@ apps:
   # (adopting an existing copy can need sudo; Toolbox self-updates anyway).
   jetbrains_toolbox_cask: jetbrains-toolbox
   jetbrains_toolbox_app: "/Applications/JetBrains Toolbox.app"
-  # JetBrains Toolbox on Debian: no apt/.deb; pinned upstream tarball (bundles
-  # its own JRE) per arch. It self-installs and self-updates on first launch.
-  jetbrains_toolbox_version: "3.9.1.89198"
-  jetbrains_toolbox_asset: "jetbrains-toolbox-{{ apps.jetbrains_toolbox_version }}{{ '-arm64' if deb_arch == 'arm64' else '' }}.tar.gz"
-  jetbrains_toolbox_url: "https://download.jetbrains.com/toolbox/{{ apps.jetbrains_toolbox_asset }}"
+  # JetBrains Toolbox on Debian: no apt/.deb; JetBrains' download endpoint
+  # redirects to the latest tarball (bundles its own JRE) per arch. It
+  # self-installs and self-updates on first launch.
+  jetbrains_toolbox_url: "https://data.services.jetbrains.com/products/download?code=TBA&platform={{ 'linuxARM64' if deb_arch == 'arm64' else 'linux' }}"
 
 # jdtls (Eclipse JDT Language Server, Java LSP). macOS: Homebrew formula.
-# Debian: no apt package, so install the Eclipse release tarball (arch-independent,
-# pure Java). The milestone filename embeds a build timestamp, so the full URL is
-# the source of truth (not derivable from the version alone).
+# Debian: no apt package, so install the latest Eclipse milestone tarball
+# (arch-independent, pure Java): newest release tag from GitHub, then that
+# milestone's latest.txt names the tarball (its filename embeds a build timestamp).
 jdtls:
   brew_formulae:
     - jdtls
-  version: "1.58.0"
-  debian_tarball_url: "https://download.eclipse.org/jdtls/milestones/1.58.0/jdt-language-server-1.58.0-202604151538.tar.gz"
+  tags_api: "https://api.github.com/repos/eclipse-jdtls/eclipse.jdt.ls/tags?per_page=100"
+  milestones_url: "https://download.eclipse.org/jdtls/milestones"
 
 neovim:
   # tree-sitter-cli compiles treesitter parsers (nvim-treesitter `main`); stylua formats the Lua config.
@@ -159,16 +164,14 @@ neovim:
   apt_packages:
     - neovim
   # Debian/WSL: release zips (files at root, hence -j) into ~/.local/bin.
-  # tree-sitter stays a release binary: Resolute's apt tree-sitter-cli (0.25.9)
+  # tree-sitter (latest) is a release binary: Resolute's apt tree-sitter-cli (0.25.9)
   # is below nvim-treesitter main's minimum (0.26.1). stylua has no apt package.
-  tree_sitter_version: "0.27.2"
-  stylua_version: "2.6.0"
   tree_sitter_asset: "tree-sitter-cli-linux-{{ 'arm64' if deb_arch == 'arm64' else 'x64' }}.zip"
   release_binaries:
     - name: tree-sitter
-      url: "https://github.com/tree-sitter/tree-sitter/releases/download/v{{ neovim.tree_sitter_version }}/{{ neovim.tree_sitter_asset }}"
+      url: "https://github.com/tree-sitter/tree-sitter/releases/latest/download/{{ neovim.tree_sitter_asset }}"
     - name: stylua
-      url: "https://github.com/JohnnyMorganz/StyLua/releases/download/v{{ neovim.stylua_version }}/stylua-linux-{{ linux_arch }}.zip"
+      url: "https://github.com/JohnnyMorganz/StyLua/releases/latest/download/stylua-linux-{{ linux_arch }}.zip"
 
 # Go. macOS: Homebrew. Debian: always the latest go.dev release (arch-aware),
 # re-extracted into /usr/local/go only when go.dev reports a newer version.
@@ -196,10 +199,12 @@ awscli:
 bitwarden:
   brew_formulae:
     - bitwarden-cli
-  # Debian/WSL: no apt package; upstream release zip (single `bw` binary).
-  version: "2026.10.1"
-  linux_asset: "bw-linux{{ '-arm64' if deb_arch == 'arm64' else '' }}-{{ bitwarden.version }}.zip"
-  linux_url: "https://github.com/bitwarden/clients/releases/download/cli-v{{ bitwarden.version }}/{{ bitwarden.linux_asset }}"
+  # Debian/WSL: no apt package; latest CLI release zip (single `bw` binary). The
+  # repo's GitHub "latest" release is the desktop app, so the newest cli-v* tag
+  # is looked up at install time (bw_version, set in bitwarden-cli.yaml).
+  releases_api: "https://api.github.com/repos/bitwarden/clients/releases?per_page=50"
+  linux_asset: "bw-linux{{ '-arm64' if deb_arch == 'arm64' else '' }}-{{ bw_version }}.zip"
+  linux_url: "https://github.com/bitwarden/clients/releases/download/cli-v{{ bw_version }}/{{ bitwarden.linux_asset }}"
 
 yazi:
   # Debian/WSL: no Ubuntu package; upstream ships a .deb per arch (tracks latest).
@@ -235,15 +240,14 @@ yazi:
 sdkman_shell: "{{ '/bin/zsh' if ansible_facts.os_family == 'Darwin' else '/bin/bash' }}"
 
 node:
-  nvm_version: "v0.40.4"
+  # nvm: latest release tag looked up at install time (js.yaml).
+  nvm_latest_api: "https://api.github.com/repos/nvm-sh/nvm/releases/latest"
   node_version: "--lts"
 
 # tflint (Terraform linter). No Homebrew/apt package — both OSes install the
-# upstream release zip (arm64 or amd64) into ~/.local/bin.
+# latest upstream release zip (arm64 or amd64) into ~/.local/bin.
 tflint:
-  version: "0.63.1"
-  url: >-
-    https://github.com/terraform-linters/tflint/releases/download/v{{ tflint.version }}/tflint_{{ ansible_facts.system | lower }}_{{ deb_arch }}.zip
+  url: "https://github.com/terraform-linters/tflint/releases/latest/download/tflint_{{ ansible_facts.system | lower }}_{{ deb_arch }}.zip"
 
 # GitHub CLI (gh). macOS: Homebrew. Debian: GitHub's official apt repo —
 # Ubuntu's own `gh` package (2.46 on Resolute) lags upstream by years.
@@ -254,15 +258,15 @@ github_cli:
   apt_repo_key_url: "https://cli.github.com/packages/githubcli-archive-keyring.gpg"
 
 # SonarQube CLI (`sonar`). macOS: Homebrew cask (Apple Silicon only). Debian: no
-# apt/.deb; single binary from SonarSource's CDN into ~/.local/bin. (Their
+# apt/.deb; latest single binary from SonarSource's CDN into ~/.local/bin. (Their
 # install script would append a PATH line to the stowed ~/.zshrc, so it's not used.)
 sonarqube_cli:
   brew_casks:
     - sonarqube-cli
-  version: "1.11.0.16877"
+  # Latest stable version is read from stable.version at install time (sonar_version).
+  base_url: "https://binaries.sonarsource.com/Distribution/sonarqube-cli"
   linux_platform: "linux-{{ 'arm64' if deb_arch == 'arm64' else 'x86-64' }}"
-  linux_base_url: "https://binaries.sonarsource.com/Distribution/sonarqube-cli/{{ sonarqube_cli.version }}/linux"
-  linux_url: "{{ sonarqube_cli.linux_base_url }}/sonarqube-cli-{{ sonarqube_cli.version }}-{{ sonarqube_cli.linux_platform }}.bin"
+  linux_url: "{{ sonarqube_cli.base_url }}/{{ sonar_version }}/linux/sonarqube-cli-{{ sonar_version }}-{{ sonarqube_cli.linux_platform }}.bin"
 
 # Atlassian CLI (acli). macOS: Atlassian's Homebrew tap. Debian: Atlassian's apt repo.
 acli:

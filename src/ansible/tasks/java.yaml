@@ -36,25 +36,60 @@
     - java
     - jdtls
 
-# Debian: no apt package. Extract the arch-independent Eclipse tarball into
-# ~/.local/share/jdtls and symlink its bin/jdtls launcher onto PATH. The
+# Debian: no apt package. Extract the latest arch-independent Eclipse milestone
+# into ~/.local/share/jdtls and symlink its bin/jdtls launcher onto PATH. The
 # launcher needs python3 (system) + java (SDKMAN, above).
-- name: "Create jdtls install directory (Debian)"
-  ansible.builtin.file:
-    path: "{{ ansible_facts.env.HOME }}/.local/share/jdtls"
-    state: directory
-    mode: '0755'
+- name: "Check for an existing jdtls install (Debian)"
+  ansible.builtin.stat:
+    path: "{{ ansible_facts.env.HOME }}/.local/share/jdtls/bin/jdtls"
+  register: jdtls_bin
   when: ansible_facts.os_family == "Debian"
   tags:
     - java
     - jdtls
 
-- name: "Download and extract jdtls (Debian)"
-  ansible.builtin.unarchive:
-    src: "{{ jdtls.debian_tarball_url }}"
-    dest: "{{ ansible_facts.env.HOME }}/.local/share/jdtls"
-    remote_src: true
-    creates: "{{ ansible_facts.env.HOME }}/.local/share/jdtls/bin/jdtls"
+- name: "Install the latest jdtls milestone (Debian)"
+  when: ansible_facts.os_family == "Debian" and not jdtls_bin.stat.exists
+  tags:
+    - java
+    - jdtls
+  block:
+    - name: "Look up jdtls release tags (Debian)"
+      ansible.builtin.uri:
+        url: "{{ jdtls.tags_api }}"
+        return_content: true
+      register: jdtls_tags
+
+    - name: "Resolve the newest jdtls release (Debian)"
+      ansible.builtin.set_fact:
+        jdtls_version: >-
+          {{ jdtls_tags.json | map(attribute='name') | select('match', '^v[0-9]+[.][0-9]+[.][0-9]+$')
+             | map('regex_replace', '^v', '') | community.general.version_sort | last }}
+
+    - name: "Find that milestone's tarball (Debian)"
+      ansible.builtin.uri:
+        url: "{{ jdtls.milestones_url }}/{{ jdtls_version }}/latest.txt"
+        return_content: true
+      register: jdtls_latest_txt
+
+    - name: "Create jdtls install directory (Debian)"
+      ansible.builtin.file:
+        path: "{{ ansible_facts.env.HOME }}/.local/share/jdtls"
+        state: directory
+        mode: '0755'
+
+    - name: "Download and extract jdtls (Debian)"
+      ansible.builtin.unarchive:
+        src: "{{ jdtls.milestones_url }}/{{ jdtls_version }}/{{ jdtls_latest_txt.content | trim }}"
+        dest: "{{ ansible_facts.env.HOME }}/.local/share/jdtls"
+        remote_src: true
+        creates: "{{ ansible_facts.env.HOME }}/.local/share/jdtls/bin/jdtls"
+
+- name: "Ensure ~/.local/bin exists (Debian)"
+  ansible.builtin.file:
+    path: "{{ ansible_facts.env.HOME }}/.local/bin"
+    state: directory
+    mode: '0755'
   when: ansible_facts.os_family == "Debian"
   tags:
     - java

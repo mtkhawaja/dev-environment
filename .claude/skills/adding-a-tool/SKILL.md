@@ -71,12 +71,21 @@ with per-asset `extra_opts` to normalize layout (`--strip-components=1` for nest
 the binary executable, and use `creates:` for idempotency. Build the URL with `{{ linux_arch }}` (`x86_64`/`aarch64`)
 or `{{ deb_arch }}` (`amd64`/`arm64`) so it works on both architectures. For `.zip` assets, `unzip` must be installed first.
 
-## Version pinning
+## Versions: always latest, never pinned
 
-**If you must pin a version, check the latest stable release FIRST** (GitHub releases / `brew info` / upstream) and pin
-to that — do not pin to whatever version a stale example happens to show. Pins live in `src/ansible/vars/main.yml` (e.g.
-`tflint.version`). Prefer leaving package-manager installs unpinned (`state: present`); pin only release binaries /
-`.deb` URLs where the version is part of the download path.
+Install the **latest release at install time**; do not pin versions. In order of preference:
+
+1. Package managers unpinned (`state: present`).
+2. A version-free download URL: GitHub's `https://github.com/<owner>/<repo>/releases/latest/download/<asset>` works
+   whenever the asset name has no version in it (see `tflint`, `neovim.release_binaries`), or a vendor redirect
+   endpoint (JetBrains Toolbox).
+3. A runtime "latest" lookup when the URL must contain the version: a vendor version endpoint (go.dev `VERSION`,
+   SonarQube `stable.version`) or the GitHub API (`releases/latest`, or tags + `community.general.version_sort`; see
+   `js.yaml`, `bitwarden-cli.yaml`, `java.yaml`). Gate lookups on the tool not being installed (anonymous GitHub API:
+   60 requests/hour).
+
+Re-runs don't upgrade; `creates:` / stat guards keep them idempotent. Pin only if upstream offers no way to get the
+latest, and explain why in a comment.
 
 ## Guardrails
 
@@ -108,7 +117,7 @@ Mac — the Docker image only covers the Debian branch.
 ## Common mistakes
 
 - **Writing an apt-only task** — forgetting the `Darwin` branch. Every install task needs both OSes.
-- **Pinning to an example's version** instead of checking the current latest release.
+- **Pinning a version** when a `releases/latest/download` URL or a runtime "latest" lookup would work.
 - **Hardcoding a package name/URL in the task** instead of `vars/main.yml`.
 - **Forgetting `unzip`** before a `.zip` release archive on Debian, or omitting `extra_opts` so the binary lands in a
   nested dir off PATH.

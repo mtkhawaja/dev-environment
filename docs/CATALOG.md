@@ -8,6 +8,9 @@ is generated from the Ansible task files in `src/ansible/tasks/` — when you ad
 `ansible_facts.os_family`. A few macOS substitutes apply where the Linux tool is platform-specific: `xclip` →
 `pbcopy`/`pbpaste` (built in), and `tofrodos` → `dos2unix`.
 
+**Versions:** nothing is pinned. Each tool installs the latest release available at install time; re-runs don't
+upgrade (self-updating tools such as JetBrains Toolbox, SonarQube CLI and Claude Code keep themselves current).
+
 ---
 
 ## Shell & prompt
@@ -37,7 +40,7 @@ is generated from the Ansible task files in `src/ansible/tasks/` — when you ad
 | Tool                             | What it is            | Why it's useful                                                                                 |
 |----------------------------------|-----------------------|-------------------------------------------------------------------------------------------------|
 | **Neovim** | Modern Vim fork       | Fast, extensible modal editor. apt on Debian; Homebrew on macOS. |
-| **tree-sitter** *(`tree-sitter-cli`)* | Parser generator CLI | Required by nvim-treesitter's `main` branch to compile syntax parsers locally (needs ≥ 0.26.1). Pinned release binary on Debian (apt is too old). |
+| **tree-sitter** *(`tree-sitter-cli`)* | Parser generator CLI | Required by nvim-treesitter's `main` branch to compile syntax parsers locally (needs ≥ 0.26.1). Latest release binary on Debian (apt is too old). |
 | **StyLua**                       | Lua formatter         | Formats the Neovim config (`.stylua.toml`); also what the config repo's CI checks. Release binary on Debian. |
 
 ## AI assistant
@@ -134,7 +137,7 @@ is generated from the Ansible task files in `src/ansible/tasks/` — when you ad
 | Tool | What it is | Why it's useful |
 |------|------------|-----------------|
 | **Ghostty** | GPU-accelerated terminal | Fast native terminal; config comes from the dotfiles repo (`~/.config/ghostty/`). Homebrew cask on macOS; Ubuntu's archive on Debian. |
-| **JetBrains Toolbox** | JetBrains IDE manager | Installs and updates IntelliJ, PyCharm, etc. Homebrew cask on macOS (skipped if the app is already installed); pinned tarball on Debian (x86_64/arm64), self-updating after first launch. Sign-in and IDE choice stay manual. |
+| **JetBrains Toolbox** | JetBrains IDE manager | Installs and updates IntelliJ, PyCharm, etc. Homebrew cask on macOS (skipped if the app is already installed); latest tarball on Debian (x86_64/arm64), self-updating after first launch. Sign-in and IDE choice stay manual. |
 | **VLC** | Media player | Plays nearly any audio/video format. Homebrew cask on macOS; apt on Debian. |
 | **bloom**, **AeroSpace** | macOS utilities | File manager and tiling window manager (macOS only). |
 
@@ -145,7 +148,7 @@ is generated from the Ansible task files in `src/ansible/tasks/` — when you ad
 | Tool | What it is | Why it's useful |
 |------|------------|-----------------|
 | **GitHub CLI** (`gh`) | GitHub from the terminal | PRs, issues, Actions runs, releases and API calls without the browser. Homebrew on macOS; GitHub's official apt repo on Debian (Ubuntu's package lags by years). |
-| **SonarQube CLI** (`sonar`) | SonarQube in the terminal | Code-quality and security analysis from scripts and agents. Homebrew cask on macOS (Apple Silicon only); pinned binary on Debian (amd64/arm64). |
+| **SonarQube CLI** (`sonar`) | SonarQube in the terminal | Code-quality and security analysis from scripts and agents. Homebrew cask on macOS (Apple Silicon only); latest binary on Debian (amd64/arm64). |
 | **Atlassian CLI** (`acli`) | Jira / Confluence CLI | Script Jira and Confluence work from the shell. Atlassian's Homebrew tap on macOS; Atlassian's apt repo on Debian. |
 
 ## Headless browser testing (Linux only)

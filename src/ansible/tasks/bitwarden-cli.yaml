@@ -1,14 +1,46 @@
 ---
 # Bitwarden CLI (bw).
 #   macOS  -> Homebrew
-#   Debian -> upstream release zip (amd64 or arm64), pinned in vars/main.yml
+#   Debian -> latest CLI release zip (amd64 or arm64)
 
-- name: "Install Bitwarden CLI (Debian)"
+- name: "Ensure unzip is available for .zip release archives (Debian)"
+  become: true
+  ansible.builtin.apt:
+    name: unzip
+    state: present
   when: ansible_facts.os_family == "Debian"
   tags:
     - initial-setup
     - bitwarden
+
+- name: "Check for an existing Bitwarden CLI (Debian)"
+  ansible.builtin.stat:
+    path: "{{ ansible_facts.env.HOME }}/.local/bin/tools/bitwarden/bin/bw"
+  register: bw_bin
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - initial-setup
+    - bitwarden
+
+- name: "Install the latest Bitwarden CLI (Debian)"
+  when: ansible_facts.os_family == "Debian" and not bw_bin.stat.exists
+  tags:
+    - initial-setup
+    - bitwarden
   block:
+    - name: "Look up Bitwarden releases (Debian)"
+      ansible.builtin.uri:
+        url: "{{ bitwarden.releases_api }}"
+        return_content: true
+      register: bw_releases
+
+    # The repo also releases desktop/browser/web apps; take the newest CLI one.
+    - name: "Resolve the newest Bitwarden CLI release (Debian)"
+      ansible.builtin.set_fact:
+        bw_version: >-
+          {{ bw_releases.json | rejectattr('prerelease') | map(attribute='tag_name')
+             | select('match', '^cli-v') | first | regex_replace('^cli-v', '') }}
+
     - name: "Ensure bitwarden directories exist"
       ansible.builtin.file:
         path: "{{ ansible_facts.env.HOME }}/.local/bin/tools/bitwarden/bin"
