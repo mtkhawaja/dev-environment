@@ -75,8 +75,15 @@ else
     || { log "ERROR" "Failed to install community.general"; exit 1; }
 fi
 
+# HEADLESS=true (server without a desktop) skips GUI apps and desktop-only packages.
+EXTRA_VARS=()
+if [[ -n "${HEADLESS:-}" ]]; then
+  log "INFO" "Passing headless=${HEADLESS} to the playbook"
+  EXTRA_VARS=(-e "headless=${HEADLESS}")
+fi
+
 log "INFO" "Running ansible-pull to configure the system"
-ansible-pull -U "$REPO_URL" -i localhost, local.yaml || {
+ansible-pull -U "$REPO_URL" -i localhost, "${EXTRA_VARS[@]}" local.yaml || {
   log "ERROR" "ansible-pull failed"
   exit 1
 }

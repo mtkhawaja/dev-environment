@@ -16,9 +16,12 @@
     state: present
   loop:
     - { packages: ["apt-transport-https", "gnupg", "ca-certificates"], description: "Package management dependencies" }
-    - { packages: ["fonts-powerline"], description: "Powerline fonts" }
+    - { packages: ["fonts-powerline"], description: "Powerline fonts", desktop: true }
     - { packages: ["locales", "locales-all"], description: "Locale support" }
-  when: ansible_facts.os_family == "Debian"
+  # Powerline glyphs render on the SSH client, so headless servers skip them.
+  when:
+    - ansible_facts.os_family == "Debian"
+    - not (item.desktop | default(false) and headless | bool)
   tags:
     - initial-setup
     - packages

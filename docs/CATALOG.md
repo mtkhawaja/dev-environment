@@ -20,7 +20,7 @@ is generated from the Ansible task files in `src/ansible/tasks/` — when you ad
 | **oh-my-zsh**               | zsh configuration framework | Manages themes and plugins so the shell is productive out of the box.                                               |
 | **zsh-autosuggestions**     | oh-my-zsh plugin            | Suggests commands as you type based on history — accept with → for fewer keystrokes.                                |
 | **zsh-syntax-highlighting** | oh-my-zsh plugin            | Colors commands as you type so typos/invalid commands are obvious before you hit enter.                             |
-| **fonts-powerline**         | Patched fonts               | Provides the glyphs (arrows, branch icons) that Powerline-style prompts and themes need to render correctly.        |
+| **fonts-powerline**         | Patched fonts               | Provides the glyphs (arrows, branch icons) that Powerline-style prompts and themes need to render correctly. Skipped when `headless` (glyphs render on the SSH client). |
 
 ## Dotfiles
 
@@ -65,7 +65,7 @@ is generated from the Ansible task files in `src/ansible/tasks/` — when you ad
 | **rsync**                      | File sync/transfer    | Efficient incremental copy/sync locally or over SSH.                                                 |
 | **curl** / **wget**            | HTTP clients          | Fetch URLs, APIs, and release artifacts from scripts.                                                |
 | **lsof**                       | Open-files lister     | See which process holds a file or port — key for debugging "address in use".                         |
-| **xclip**                      | Clipboard bridge      | Pipe terminal output to/from the X clipboard.                                                        |
+| **xclip**                      | Clipboard bridge      | Pipe terminal output to/from the X clipboard. Skipped when `headless`.                               |
 | **expect**                     | TTY automation        | Script interactive prompts (passwords, confirmations).                                               |
 | **zip** / **unzip**            | Archive tools         | Create and extract `.zip` archives (also required to unpack some release binaries).                  |
 | **tofrodos**                   | Line-ending converter | Convert between DOS (CRLF) and Unix (LF) line endings — handy across Windows/WSL.                    |

@@ -39,6 +39,13 @@ Run the [convenience script](./setup.sh), which detects your OS, installs Ansibl
 curl -s https://raw.githubusercontent.com/mtkhawaja/dev-environment/main/setup.sh | bash
 ```
 
+On a server without a desktop, set `HEADLESS=true` to skip GUI apps (VLC, macOS casks) and desktop-only
+packages (`xclip`, `fonts-powerline`):
+
+```bash
+curl -s https://raw.githubusercontent.com/mtkhawaja/dev-environment/main/setup.sh | HEADLESS=true bash
+```
+
 Bootstrap logs are written to `~/.ansible-dev-env-bootstrap/`.
 
 ### Manual install (Linux)
@@ -52,6 +59,7 @@ sudo apt install -y ansible
 
 # Run the playbook directly from this repo
 ansible-pull -U https://github.com/mtkhawaja/dev-environment.git -i localhost, local.yaml
+# add `-e headless=true` on a server without a desktop
 ```
 
 ## Iterating on the playbook

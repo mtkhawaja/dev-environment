@@ -53,5 +53,6 @@
       ansible.builtin.import_tasks: src/ansible/tasks/modern-cli.yaml
     - name: GUI apps
       ansible.builtin.import_tasks: src/ansible/tasks/apps.yaml
+      when: not (headless | bool)
     - name: Claude Code
       ansible.builtin.import_tasks: src/ansible/tasks/claude-code.yaml
