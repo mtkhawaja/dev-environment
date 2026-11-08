@@ -10,10 +10,12 @@ An Ansible-based provisioner that configures a personal development machine (she
 
 Bootstrap a fresh machine (installs Ansible, then runs the playbook via `ansible-pull`):
 
+Three target environments (details in README "Set up a machine"); `setup.sh` always pulls `main` from GitHub, not your checkout:
+
 ```bash
-./setup.sh                 # local checkout
-# or remote, one-shot:
-curl -s https://raw.githubusercontent.com/mtkhawaja/dev-environment/main/setup.sh | bash
+bash setup.sh                              # macOS (installs Homebrew if missing)
+sudo -v && bash setup.sh                   # Linux with a desktop (setup.sh needs non-interactive sudo)
+sudo -v && HEADLESS=true bash setup.sh     # Linux server: skips GUI apps + desktop-only packages
 ```
 
 Once Ansible is installed, iterate on the playbook directly against the local host:
@@ -22,6 +24,7 @@ Once Ansible is installed, iterate on the playbook directly against the local ho
 ansible-galaxy collection install -r requirements.yml   # one-time: pulls community.general
 ansible-playbook -i localhost, local.yaml               # full run
 ansible-playbook -i localhost, local.yaml --tags modern-cli   # run one area only
+ansible-playbook -i localhost, -K -e headless=true local.yaml # Linux server flavor (-K: sudo password)
 ```
 
 Test a full run in a throwaway Ubuntu container (the safest way to validate end-to-end):
@@ -29,6 +32,7 @@ Test a full run in a throwaway Ubuntu container (the safest way to validate end-
 ```bash
 ./run_docker.sh                                          # build + run interactive shell
 docker build --build-arg TAGS="--tags modern-cli" -t mtkhawaja/dev-env:latest .   # scope the in-image run
+docker build --build-arg TAGS="-e headless=true" -t mtkhawaja/dev-env:headless .   # headless/server flavor
 ```
 
 **A local full run mutates your real home directory** — `zsh.yaml` deletes and reinstalls `~/.oh-my-zsh`, and `dotfiles.yaml` force-resets `~/.dotfiles` to `origin/main` (unpushed dotfiles commits are discarded) and restows it. When testing changes, use Docker or a `--tags` scope rather than a bare local run.

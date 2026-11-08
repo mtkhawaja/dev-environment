@@ -6,19 +6,98 @@ See **[docs/CATALOG.md](./docs/CATALOG.md)** for the full list of tools that get
 
 ## Platform support
 
-| Platform | Status |
-|----------|--------|
-| Ubuntu 26.04 LTS (Resolute) | Supported, x86_64 and arm64 |
-| WSL (Ubuntu 26.04) | Supported (same apt path) |
-| macOS (Apple Silicon) | Supported — every task installs via Homebrew on the Darwin branch; verified by the `macos` CI job |
+| Environment | Status |
+|-------------|--------|
+| macOS (Apple Silicon) | Supported — everything installs via Homebrew; verified by the `macos` CI job |
+| Ubuntu 26.04 LTS (Resolute) with a desktop | Supported, x86_64 and arm64 |
+| Ubuntu 26.04 LTS server / headless | Supported, x86_64 and arm64 — `HEADLESS=true` |
+| WSL (Ubuntu 26.04) | Supported — desktop flavor with WSLg, otherwise headless |
 | Windows (native) | Use WSL or the Docker image below |
+
+Versions are never pinned: every tool installs the latest release available at install time.
+
+## Set up a machine
+
+> **Warning:** A full run modifies your home directory. It reinstalls `~/.oh-my-zsh`, force-resets `~/.dotfiles` to
+> `origin/main` of the [dotfiles repo](https://github.com/mtkhawaja/dotfiles) (push any local dotfiles commits first),
+> and stows them over `~/.zshrc`, `~/.zshenv` and friends. Try it in the Docker container first.
+
+All three environments use the same bootstrap script, [`setup.sh`](./setup.sh): it installs Ansible (Homebrew on
+macOS, the Ansible PPA on Linux) and the required collections, then runs the playbook with `ansible-pull` straight
+from this repo's `main` branch on GitHub. Download it and run it from a terminal (rather than piping it into `bash`)
+so installers can prompt for your password. Logs go to `~/.ansible-dev-env-bootstrap/`.
+
+| | macOS | Linux desktop | Linux server / headless |
+|---|---|---|---|
+| CLI tools, shell, dotfiles, editors, runtimes | ✅ | ✅ | ✅ |
+| GUI apps (Ghostty, VLC, JetBrains Toolbox; AeroSpace and bloom on macOS) | ✅ | ✅ | — |
+| Desktop-only packages (`xclip`, `fonts-powerline`) | n/a | ✅ | — |
+| Headless browser testing (Google Chrome, fonts, `xvfb`) | — (not managed) | ✅ | ✅ |
+
+### macOS (Apple Silicon)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/mtkhawaja/dev-environment/main/setup.sh -o setup.sh && bash setup.sh
+```
+
+- Installs Homebrew first if it's missing (the Homebrew installer asks for your password).
+- Everything installs through Homebrew formulae and casks. Apps already in `/Applications` are adopted when the
+  versions match; JetBrains Toolbox is left alone if it's already installed.
+- Browsers / browser-testing are intentionally not managed on macOS.
+
+### Linux with a desktop (Ubuntu 26.04)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/mtkhawaja/dev-environment/main/setup.sh -o setup.sh && sudo -v && bash setup.sh
+```
+
+- Needs sudo. `setup.sh` checks with `sudo -n true`, so authenticate first (`sudo -v`) or use passwordless sudo.
+- Installs the CLI tooling plus the GUI apps (Ghostty, VLC, JetBrains Toolbox), `xclip`, Powerline fonts, and Google
+  Chrome for browser tests. Works on x86_64 and arm64.
+
+### Linux server / headless (Ubuntu 26.04, no desktop)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/mtkhawaja/dev-environment/main/setup.sh -o setup.sh && sudo -v && HEADLESS=true bash setup.sh
+```
+
+- `HEADLESS=true` skips GUI apps (Ghostty, VLC, JetBrains Toolbox) and desktop-only packages (`xclip`,
+  `fonts-powerline`).
+- Still sets up headless, Chrome-based Playwright and Selenium tests: Google Chrome stable (which brings the shared
+  libraries browsers need), fonts, and `xvfb` for tests that must run headed (`xvfb-run -a <cmd>`). Projects then only
+  need their own sudo-free step, e.g. `npx playwright install chromium`; Selenium Manager fetches a matching
+  chromedriver. Inside Docker, Chrome's sandbox needs `--no-sandbox` (Playwright's default) or
+  `--security-opt seccomp=unconfined`. See [docs/CATALOG.md](./docs/CATALOG.md#headless-browser-testing-linux-only).
+
+### Without `setup.sh`
+
+With Ansible already installed, run the playbook from GitHub (`ansible-pull`) or from a checkout (`ansible-playbook`,
+which uses your local changes). `-K` asks for your sudo password up front on Linux; macOS doesn't need it.
+
+```bash
+ansible-galaxy collection install -r requirements.yml   # one-time: community.general
+
+# from GitHub
+ansible-pull -U https://github.com/mtkhawaja/dev-environment.git -i localhost, local.yaml            # macOS
+ansible-pull -U https://github.com/mtkhawaja/dev-environment.git -i localhost, -K local.yaml         # Linux desktop
+ansible-pull -U https://github.com/mtkhawaja/dev-environment.git -i localhost, -K -e headless=true local.yaml  # Linux server
+
+# from a checkout
+ansible-playbook -i localhost, local.yaml                       # macOS
+ansible-playbook -i localhost, -K local.yaml                    # Linux desktop
+ansible-playbook -i localhost, -K -e headless=true local.yaml   # Linux server
+```
+
+To install Ansible by hand on Ubuntu: `sudo apt install -y software-properties-common && sudo add-apt-repository
+--yes --update ppa:ansible/ansible && sudo apt install -y ansible`.
 
 ## Try it in a throwaway container
 
-The safest way to see a full run without touching your own machine:
+The safest way to see a full Linux run without touching your own machine:
 
 ```bash
 docker build -t mtkhawaja/dev-env:latest . && docker run -it --rm mtkhawaja/dev-env:latest
+docker build --build-arg TAGS="-e headless=true" -t mtkhawaja/dev-env:headless .   # server / headless flavor
 ```
 
 On Windows (PowerShell):
@@ -27,40 +106,8 @@ On Windows (PowerShell):
 docker build -t mtkhawaja/dev-env:latest . ; if ($?) { docker run -it --rm mtkhawaja/dev-env:latest }
 ```
 
-`./run_docker.sh` is a shortcut for the build-and-run above.
-
-## Set up a real machine
-
-> **Warning:** A full run modifies your home directory — it reinstalls `~/.oh-my-zsh`, force-overwrites `~/.dotfiles`, and stows them over `~/.zshrc`, `~/.zshenv` and friends. Try it in the Docker container first.
-
-Run the [convenience script](./setup.sh), which detects your OS, installs Ansible (Homebrew on macOS, the Ansible PPA on Linux), installs the required collections, and then runs the playbook:
-
-```bash
-curl -s https://raw.githubusercontent.com/mtkhawaja/dev-environment/main/setup.sh | bash
-```
-
-On a server without a desktop, set `HEADLESS=true` to skip GUI apps (VLC, macOS casks) and desktop-only
-packages (`xclip`, `fonts-powerline`):
-
-```bash
-curl -s https://raw.githubusercontent.com/mtkhawaja/dev-environment/main/setup.sh | HEADLESS=true bash
-```
-
-Bootstrap logs are written to `~/.ansible-dev-env-bootstrap/`.
-
-### Manual install (Linux)
-
-```bash
-# Install Ansible
-sudo apt update
-sudo apt install -y software-properties-common
-sudo add-apt-repository --yes --update ppa:ansible/ansible
-sudo apt install -y ansible
-
-# Run the playbook directly from this repo
-ansible-pull -U https://github.com/mtkhawaja/dev-environment.git -i localhost, local.yaml
-# add `-e headless=true` on a server without a desktop
-```
+`./run_docker.sh` is a shortcut for the first build-and-run. The image is x86_64 or arm64 to match your host. On Apple
+Silicon, build natively (the default): under amd64 emulation, Ubuntu 26.04's `tar` fails to create directories.
 
 ## Iterating on the playbook
 
