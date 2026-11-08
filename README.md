@@ -31,7 +31,7 @@ so installers can prompt for your password. Logs go to `~/.ansible-dev-env-boots
 |---|---|---|---|
 | CLI tools, shell, dotfiles, editors, runtimes | ✅ | ✅ | ✅ |
 | GUI apps (Ghostty, VLC, JetBrains Toolbox; AeroSpace and bloom on macOS) | ✅ | ✅ | — |
-| Desktop-only packages (`xclip`, `fonts-powerline`) | n/a | ✅ | — |
+| Desktop-only packages (`fonts-powerline`) | n/a | ✅ | — |
 | Headless browser testing (Google Chrome, fonts, `xvfb`) | — (not managed) | ✅ | ✅ |
 
 ### macOS (Apple Silicon)
@@ -61,8 +61,9 @@ curl -fsSL https://raw.githubusercontent.com/mtkhawaja/dev-environment/main/setu
 curl -fsSL https://raw.githubusercontent.com/mtkhawaja/dev-environment/main/setup.sh -o setup.sh && sudo -v && HEADLESS=true bash setup.sh
 ```
 
-- `HEADLESS=true` skips GUI apps (Ghostty, VLC, JetBrains Toolbox) and desktop-only packages (`xclip`,
-  `fonts-powerline`).
+- `HEADLESS=true` skips GUI apps (Ghostty, VLC, JetBrains Toolbox) and desktop-only packages (`fonts-powerline`).
+  `xclip` isn't installed directly, but Neovim and Yazi still pull it in as a recommended package (harmless: Chrome
+  brings the same X11 libraries).
 - Still sets up headless, Chrome-based Playwright and Selenium tests: Google Chrome stable (which brings the shared
   libraries browsers need), fonts, and `xvfb` for tests that must run headed (`xvfb-run -a <cmd>`). Projects then only
   need their own sudo-free step, e.g. `npx playwright install chromium`; Selenium Manager fetches a matching

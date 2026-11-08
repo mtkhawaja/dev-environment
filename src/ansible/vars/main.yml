@@ -82,7 +82,8 @@ tools:
     - bat
     - ripgrep
     - shellcheck
-  # Desktop-only helpers (X11 clipboard); skipped when headless.
+  # Desktop-only helpers (X11 clipboard); not installed directly when headless
+  # (Neovim and Yazi still pull xclip in as a recommended package).
   apt_desktop_packages:
     - xclip
   apt_build_tools:

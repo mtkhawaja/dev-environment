@@ -68,7 +68,7 @@ upgrade (self-updating tools such as JetBrains Toolbox, SonarQube CLI and Claude
 | **rsync**                      | File sync/transfer    | Efficient incremental copy/sync locally or over SSH.                                                 |
 | **curl** / **wget**            | HTTP clients          | Fetch URLs, APIs, and release artifacts from scripts.                                                |
 | **lsof**                       | Open-files lister     | See which process holds a file or port — key for debugging "address in use".                         |
-| **xclip**                      | Clipboard bridge      | Pipe terminal output to/from the X clipboard. Skipped when `headless`.                               |
+| **xclip**                      | Clipboard bridge      | Pipe terminal output to/from the X clipboard. Not installed directly when `headless`, though Neovim/Yazi recommend it. |
 | **expect**                     | TTY automation        | Script interactive prompts (passwords, confirmations).                                               |
 | **zip** / **unzip**            | Archive tools         | Create and extract `.zip` archives (also required to unpack some release binaries).                  |
 | **tofrodos**                   | Line-ending converter | Convert between DOS (CRLF) and Unix (LF) line endings — handy across Windows/WSL.                    |
