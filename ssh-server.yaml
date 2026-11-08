@@ -1,0 +1,24 @@
+---
+# Opt-in OpenSSH server for Linux hosts, installed already hardened (key-only
+# logins, no root). NOT part of local.yaml / setup.sh. Run it yourself:
+#
+#   ansible-playbook -i localhost, -K -e ssh_authorized_keys=https://github.com/<user>.keys ssh-server.yaml
+#   ansible-pull -U https://github.com/mtkhawaja/dev-environment.git -i localhost, -K \
+#     -e ssh_authorized_keys=https://github.com/<user>.keys ssh-server.yaml
+#
+# The key argument is optional if ~/.ssh/authorized_keys already holds a key;
+# with no key at all it refuses to run and installs nothing.
+- name: Install a hardened OpenSSH server
+  hosts: localhost
+  connection: local
+  vars_files:
+    - src/ansible/vars/main.yml
+  tasks:
+    - name: "Only Linux hosts are supported"
+      ansible.builtin.assert:
+        that: ansible_facts.os_family == "Debian"
+        fail_msg: "ssh-server.yaml is for Linux (Debian/Ubuntu) hosts only."
+        quiet: true
+
+    - name: OpenSSH server
+      ansible.builtin.import_tasks: src/ansible/tasks/ssh-server.yaml

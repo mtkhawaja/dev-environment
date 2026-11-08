@@ -33,6 +33,8 @@ so installers can prompt for your password. Logs go to `~/.ansible-dev-env-boots
 | GUI apps (Ghostty, VLC, JetBrains Toolbox; AeroSpace and bloom on macOS) | ✅ | ✅ | — |
 | Desktop-only packages (`fonts-powerline`) | n/a | ✅ | — |
 | Headless browser testing (Google Chrome, fonts, `xvfb`) | — (not managed) | ✅ | ✅ |
+| OpenSSH client | built in | ✅ | ✅ |
+| OpenSSH server, hardened (opt-in: `ssh-server.yaml`) | — (never) | opt-in | opt-in |
 
 ### macOS (Apple Silicon)
 
@@ -69,6 +71,27 @@ curl -fsSL https://raw.githubusercontent.com/mtkhawaja/dev-environment/main/setu
   need their own sudo-free step, e.g. `npx playwright install chromium`; Selenium Manager fetches a matching
   chromedriver. Inside Docker, Chrome's sandbox needs `--no-sandbox` (Playwright's default) or
   `--security-opt seccomp=unconfined`. See [docs/CATALOG.md](./docs/CATALOG.md#headless-browser-testing-linux-only).
+
+### Optional: SSH server (Linux)
+
+The regular install only adds the SSH client. To accept SSH logins, run the separate `ssh-server.yaml` playbook: it
+installs OpenSSH already hardened, as one step. It's never run by `setup.sh` or `local.yaml`:
+
+```bash
+ansible-pull -U https://github.com/mtkhawaja/dev-environment.git -i localhost, -K \
+  -e ssh_authorized_keys=https://github.com/<user>.keys ssh-server.yaml
+ansible-playbook -i localhost, -K -e ssh_authorized_keys=https://github.com/<user>.keys ssh-server.yaml   # from a checkout
+```
+
+In order, it:
+
+1. authorizes the key(s) you pass (a key line, or a URL like `https://github.com/<user>.keys`); this is optional if
+   `~/.ssh/authorized_keys` already has a key,
+2. refuses to continue, installing nothing, if there's still no key, so the server never runs with password logins,
+3. writes `/etc/ssh/sshd_config.d/10-dev-env-hardening.conf` (no password, keyboard-interactive, or root logins; it
+   wins over cloud-init's `50-cloud-init.conf`) *before* installing `openssh-server`, so `sshd` is hardened from its
+   first start, then validates with `sshd -t`; on failure it stops and disables the server (fails closed),
+4. enables the socket-activated server (`ssh.socket`, port 22) and reloads `sshd` if it's running.
 
 ### Without `setup.sh`
 

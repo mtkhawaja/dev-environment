@@ -1,3 +1,4 @@
 ---
 collections:
   - name: community.general
+  - name: ansible.posix   # authorized_key (ssh-server.yaml)

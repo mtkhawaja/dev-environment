@@ -168,6 +168,15 @@ Inside Docker, Chrome's sandbox needs namespaces that the default seccomp profil
 (Playwright already does) or run the container with `--security-opt seccomp=unconfined`. On a real Ubuntu host,
 Ubuntu's AppArmor profile for `/opt/google/chrome/chrome` lets the sandbox work as-is.
 
+## SSH
+
+*(`ssh.yaml`; server: `ssh-server.yaml`)* — Linux only.
+
+| Tool | What it is | Why it's useful |
+|------|------------|-----------------|
+| **OpenSSH client** (`openssh-client`) | `ssh`, `scp`, `ssh-keygen` | Regular install on Linux; minimal Ubuntu images ship without it. Built into macOS. |
+| **OpenSSH server** (`openssh-server`, opt-in) | `sshd` | Remote logins, installed only by `ssh-server.yaml` and always hardened: key-only, no root, socket-activated on port 22. It refuses to install without an authorized key. Never on macOS (Remote Login stays off). |
+
 ## Secrets & signing
 
 *(`bitwarden-cli.yaml`, `pre_tasks.yaml`)*

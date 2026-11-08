@@ -291,3 +291,23 @@ browser_testing:
     - fonts-liberation
     - fonts-noto-color-emoji
     - xvfb            # only for tests that must run headed: xvfb-run <cmd>
+
+# SSH. Regular install (Linux): the client only — minimal images ship without
+# one. The server is opt-in via the standalone ssh-server.yaml playbook, which
+# installs it already hardened (key-only, no root). macOS: nothing — the client
+# is built in and Remote Login stays off.
+ssh:
+  apt_client_packages:
+    - openssh-client
+  apt_server_packages:
+    - openssh-server
+  # Ubuntu runs sshd via socket activation (ssh.socket listens on :22).
+  server_unit: ssh.socket
+  user: "{{ ansible_facts.user_id }}"
+  authorized_keys_file: "{{ ansible_facts.user_dir }}/.ssh/authorized_keys"
+  hardening_dropin: /etc/ssh/sshd_config.d/10-dev-env-hardening.conf
+
+# ssh-server.yaml: public key(s) to authorize before installing the server —
+# a key line or a URL such as https://github.com/<user>.keys. Optional if
+# ~/.ssh/authorized_keys already holds a key.
+ssh_authorized_keys: ""

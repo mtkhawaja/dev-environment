@@ -1,0 +1,133 @@
+---
+# Opt-in, hardened OpenSSH server for Linux (run via ssh-server.yaml). Fails closed.
+# Order matters: authorize a key first and refuse to continue without one, so
+# the server never runs with password logins enabled.
+
+- name: "Authorize the given public key(s) for {{ ssh.user }}"
+  ansible.posix.authorized_key:
+    user: "{{ ssh.user }}"
+    key: "{{ ssh_authorized_keys }}"
+    state: present
+  when: ssh_authorized_keys | length > 0
+  tags:
+    - ssh-server
+
+- name: "Read the authorized keys for {{ ssh.user }}"
+  ansible.builtin.slurp:
+    src: "{{ ssh.authorized_keys_file }}"
+  register: ssh_authorized_keys_content
+  failed_when: false
+  tags:
+    - ssh-server
+
+- name: "Refuse to install a server nobody can log in to with a key"
+  ansible.builtin.assert:
+    that:
+      - ssh_authorized_keys_content.content is defined
+      - >-
+        ssh_authorized_keys_content.content | b64decode | split('\n') | map('trim')
+        | select('match', '^(ssh-|ecdsa-|sk-)') | list | length > 0
+    fail_msg: >-
+      No public key in {{ ssh.authorized_keys_file }}. Pass one with
+      -e ssh_authorized_keys=https://github.com/<user>.keys (or a key line), or add it yourself
+      first. Nothing was installed.
+    quiet: true
+  tags:
+    - ssh-server
+
+# Fail closed: the hardening drop-in is written BEFORE the package is installed
+# (the package starts ssh.socket as soon as it's installed, so sshd's very first
+# start already reads it), and if validation fails the server is stopped and
+# disabled rather than left running with defaults.
+- name: "Install the OpenSSH server already hardened (validated with sshd -t)"
+  tags:
+    - ssh-server
+  block:
+    - name: "Create the sshd drop-in directory"
+      become: true
+      ansible.builtin.file:
+        path: "{{ ssh.hardening_dropin | dirname }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    # Key-only, no root. Sorted before cloud-init's 50-cloud-init.conf so these
+    # values win (sshd keeps the first one it reads).
+    - name: "Write the sshd hardening drop-in"
+      become: true
+      ansible.builtin.copy:
+        dest: "{{ ssh.hardening_dropin }}"
+        content: |
+          # Managed by dev-environment ssh-server.yaml.
+          PasswordAuthentication no
+          KbdInteractiveAuthentication no
+          PermitRootLogin no
+        owner: root
+        group: root
+        mode: '0644'
+      register: ssh_hardening
+
+    - name: "Install the OpenSSH server"
+      become: true
+      ansible.builtin.apt:
+        name: "{{ ssh.apt_server_packages }}"
+        state: present
+
+    - name: "Validate the full sshd configuration"
+      become: true
+      ansible.builtin.command: /usr/sbin/sshd -t
+      changed_when: false
+  rescue:
+    # Best-effort shutdown (the units may not exist if the install itself
+    # failed); the play still fails right after.
+    - name: "Stop and disable the OpenSSH server (fail closed)"
+      become: true
+      ansible.builtin.systemd_service:
+        name: "{{ item }}"
+        state: stopped
+        enabled: false
+      loop:
+        - "{{ ssh.server_unit }}"
+        - ssh.service
+      failed_when: false
+      when: ansible_facts.service_mgr == "systemd"
+
+    - name: "Stop: the OpenSSH server could not be installed or validated"
+      ansible.builtin.fail:
+        msg: >-
+          Installing or validating sshd failed ({{ ansible_failed_result.msg | default('see above') }}).
+          The SSH server was stopped and disabled so it can't run unhardened; fix the
+          configuration (sudo sshd -t) and re-run.
+
+- name: "Enable and start the OpenSSH server socket"
+  become: true
+  ansible.builtin.systemd_service:
+    name: "{{ ssh.server_unit }}"
+    enabled: true
+    state: started
+  when: ansible_facts.service_mgr == "systemd"
+  tags:
+    - ssh-server
+
+# Socket activation starts ssh.service on the first connection; reload it if
+# it's already running so it picks up the hardening.
+- name: "Check whether sshd is running"
+  ansible.builtin.systemd_service:
+    name: ssh.service
+  register: sshd_unit
+  when: ansible_facts.service_mgr == "systemd"
+  tags:
+    - ssh-server
+
+- name: "Reload sshd"
+  become: true
+  ansible.builtin.systemd_service:
+    name: ssh.service
+    state: reloaded
+  when:
+    - ansible_facts.service_mgr == "systemd"
+    - ssh_hardening is changed
+    - sshd_unit.status.ActiveState == "active"
+  tags:
+    - ssh-server

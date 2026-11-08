@@ -1,0 +1,15 @@
+---
+# SSH client (regular install).
+#   Debian -> openssh-client (minimal images ship without it)
+#   macOS  -> nothing: the client is built in
+# The SSH server is opt-in: see ssh-server.yaml.
+
+- name: "Install the OpenSSH client (Debian)"
+  become: true
+  ansible.builtin.apt:
+    name: "{{ ssh.apt_client_packages }}"
+    state: present
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - initial-setup
+    - ssh
