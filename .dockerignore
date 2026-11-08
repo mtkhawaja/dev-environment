@@ -6,3 +6,4 @@
 # needed to run the playbook.
 .git
 .claude
+.ansible

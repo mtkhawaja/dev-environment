@@ -1,3 +1,4 @@
+---
 - name: "Create standard user directories"
   ansible.builtin.file:
     path: "{{ ansible_facts.env.HOME }}/{{ item.path }}"

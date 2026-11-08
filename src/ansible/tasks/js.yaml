@@ -1,28 +1,21 @@
 ---
 # Node.js via nvm (cross-platform: macOS + Debian/WSL).
 
-- name: "Check if nvm is installed"
-  ansible.builtin.stat:
-    path: "{{ ansible_facts.env.HOME }}/.nvm/nvm.sh"
-  register: nvm_installed
-  tags:
-    - initial-setup
-    - js
-
 # PROFILE=/dev/null stops the nvm installer from editing rc files —
 # the NVM_DIR sourcing lines live in the dotfiles repo (.zshenv).
-- name: "Install nvm {{ node.nvm_version }}"
-  ansible.builtin.shell: |
-    curl -fsSL "https://raw.githubusercontent.com/nvm-sh/nvm/{{ node.nvm_version }}/install.sh" | PROFILE=/dev/null bash
-  args:
-    executable: /bin/bash
-    creates: "{{ ansible_facts.env.HOME }}/.nvm/nvm.sh"
-  when: not nvm_installed.stat.exists
+- name: "Install nvm"
+  ansible.builtin.import_tasks: common/install-script.yaml
+  vars:
+    installer_name: "nvm {{ node.nvm_version }}"
+    installer_url: "https://raw.githubusercontent.com/nvm-sh/nvm/{{ node.nvm_version }}/install.sh"
+    installer_creates: "{{ ansible_facts.env.HOME }}/.nvm/nvm.sh"
+    installer_env:
+      PROFILE: /dev/null
   tags:
     - initial-setup
     - js
 
-- name: "Install Node {{ node.node_version }} via nvm and set default"
+- name: "Install Node via nvm and set the default alias: {{ node.node_version }}"
   ansible.builtin.shell: |
     export NVM_DIR="$HOME/.nvm"
     . "$NVM_DIR/nvm.sh"

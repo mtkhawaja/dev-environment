@@ -1,12 +1,10 @@
 ---
 # Shared cross-platform configuration. Loaded by local.yaml via vars_files.
 
-modern_cli_versions:
-  delta: "0.19.2"
-  lazygit: "0.62.1"
-  dust: "1.2.4"
-  procs: "0.14.11"
-  sd: "1.1.0"
+# Linux CPU arch, in the two spellings release assets use. Ubuntu reports
+# x86_64/aarch64; macOS reports x86_64/arm64.
+linux_arch: "{{ 'aarch64' if ansible_facts.architecture in ['aarch64', 'arm64'] else 'x86_64' }}"
+deb_arch: "{{ 'arm64' if linux_arch == 'aarch64' else 'amd64' }}"
 
 modern_cli:
   # macOS: install everything through Homebrew (handles arch automatically).
@@ -19,30 +17,15 @@ modern_cli:
     - sd
     - hyperfine
 
-  # Debian/WSL: tools reliably packaged in Ubuntu Noble universe.
+  # Debian/WSL: all packaged in Ubuntu Resolute universe (any arch).
   apt_packages:
     - hyperfine
     - duf
-
-  # Debian/WSL: delta installed from an upstream .deb release.
-  delta_deb_url: "https://github.com/dandavison/delta/releases/download/{{ modern_cli_versions.delta }}/git-delta_{{ modern_cli_versions.delta }}_amd64.deb"
-
-  # Debian/WSL: release binaries extracted into ~/.local/bin (x86_64 only).
-  # extra_opts handles each archive's layout: tarballs with a nested dir use
-  # --strip-components=1; zips with files at root use -j; lazygit's tarball is flat.
-  release_binaries:
-    - name: lazygit
-      url: "https://github.com/jesseduffield/lazygit/releases/download/v{{ modern_cli_versions.lazygit }}/lazygit_{{ modern_cli_versions.lazygit }}_linux_x86_64.tar.gz"
-      extra_opts: []
-    - name: dust
-      url: "https://github.com/bootandy/dust/releases/download/v{{ modern_cli_versions.dust }}/dust-v{{ modern_cli_versions.dust }}-x86_64-unknown-linux-gnu.tar.gz"
-      extra_opts: ["--strip-components=1"]
-    - name: sd
-      url: "https://github.com/chmln/sd/releases/download/v{{ modern_cli_versions.sd }}/sd-v{{ modern_cli_versions.sd }}-x86_64-unknown-linux-gnu.tar.gz"
-      extra_opts: ["--strip-components=1"]
-    - name: procs
-      url: "https://github.com/dalance/procs/releases/download/v{{ modern_cli_versions.procs }}/procs-v{{ modern_cli_versions.procs }}-x86_64-linux.zip"
-      extra_opts: ["-j"]
+    - git-delta
+    - lazygit
+    - du-dust
+    - procs
+    - sd
 
 # ---------- SP2/SP3 cross-platform package data ----------
 
@@ -70,7 +53,9 @@ tools:
     - tmux
     - jq
     - xclip
-    - tldr
+    # tealdeer: Rust tldr client (ships `tldr`); the `tldr` package is gone in 26.04.
+    - tealdeer
+    - eza
     - fzf
     - curl
     - wget
@@ -80,7 +65,7 @@ tools:
     - zip
     - gettext
     - tofrodos
-    - neofetch
+    - fastfetch
     - rsync
     - tree
     - expect
@@ -100,8 +85,7 @@ tools:
   # X11-only xclip omitted -> pbcopy/pbpaste; tofrodos -> dos2unix;
   # build-essential -> Xcode CLT assumed present).
   # neofetch -> fastfetch: neofetch is discontinued upstream and was removed
-  # from Homebrew; fastfetch is its maintained drop-in successor. (Debian/Noble
-  # has no fastfetch package, so the apt list above keeps neofetch for now.)
+  # from Homebrew (and Ubuntu 26.04); fastfetch is its maintained drop-in successor.
   brew_formulae:
     - tmux
     - jq
@@ -109,7 +93,7 @@ tools:
     - wget
     - btop
     - gettext
-    - tldr
+    - tealdeer
     - fastfetch
     - tree
     - expect
@@ -135,9 +119,8 @@ apps:
     - vlc
 
 # jdtls (Eclipse JDT Language Server, Java LSP). macOS: Homebrew formula.
-# Debian: no apt package, so install the Eclipse release tarball — it's
-# arch-independent (pure Java), so unlike the release binaries it also covers
-# arm64. The milestone filename embeds a build timestamp, so the full URL is
+# Debian: no apt package, so install the Eclipse release tarball (arch-independent,
+# pure Java). The milestone filename embeds a build timestamp, so the full URL is
 # the source of truth (not derivable from the version alone).
 jdtls:
   brew_formulae:
@@ -145,56 +128,63 @@ jdtls:
   version: "1.58.0"
   debian_tarball_url: "https://download.eclipse.org/jdtls/milestones/1.58.0/jdt-language-server-1.58.0-202604151538.tar.gz"
 
-neovim_versions:
-  tree_sitter: "0.27.1"
-  stylua: "2.6.0"
-
 neovim:
   # tree-sitter-cli compiles treesitter parsers (nvim-treesitter `main`); stylua formats the Lua config.
   brew_formulae:
     - neovim
     - tree-sitter-cli
     - stylua
-
-  # Debian/WSL: release binaries extracted into ~/.local/bin (x86_64 only). Both zips have files at root, hence -j.
+  apt_packages:
+    - neovim
+  # Debian/WSL: release zips (files at root, hence -j) into ~/.local/bin.
+  # tree-sitter stays a release binary: Resolute's apt tree-sitter-cli (0.25.9)
+  # is below nvim-treesitter main's minimum (0.26.1). stylua has no apt package.
+  tree_sitter_version: "0.27.2"
+  stylua_version: "2.6.0"
+  tree_sitter_asset: "tree-sitter-cli-linux-{{ 'arm64' if deb_arch == 'arm64' else 'x64' }}.zip"
   release_binaries:
     - name: tree-sitter
-      url: "https://github.com/tree-sitter/tree-sitter/releases/download/v{{ neovim_versions.tree_sitter }}/tree-sitter-cli-linux-x64.zip"
-      extra_opts: ["-j"]
+      url: "https://github.com/tree-sitter/tree-sitter/releases/download/v{{ neovim.tree_sitter_version }}/{{ neovim.tree_sitter_asset }}"
     - name: stylua
-      url: "https://github.com/JohnnyMorganz/StyLua/releases/download/v{{ neovim_versions.stylua }}/stylua-linux-x86_64.zip"
-      extra_opts: ["-j"]
+      url: "https://github.com/JohnnyMorganz/StyLua/releases/download/v{{ neovim.stylua_version }}/stylua-linux-{{ linux_arch }}.zip"
 
+# Go. macOS: Homebrew. Debian: always the latest go.dev release (arch-aware),
+# re-extracted into /usr/local/go only when go.dev reports a newer version.
 go:
   brew_formulae:
     - go
+  latest_version_url: "https://go.dev/VERSION?m=text"
 
 # OpenTofu (Terraform fork). Unpinned on both platforms to track latest.
-# macOS: Homebrew formula. Debian: no apt package, so add OpenTofu's official
-# apt repo (Cloudsmith-hosted) and install the `tofu` package. The repo needs
-# two signing keys: the project key + the repo key.
+# macOS: Homebrew formula. Debian: no Ubuntu package, so add OpenTofu's official
+# apt repo and install `tofu`. Only the repo key signs the repo's InRelease.
 opentofu:
   brew_formulae:
     - opentofu
-  apt_key_url: "https://get.opentofu.org/opentofu.gpg"
+  apt_repo_uri: "https://packages.opentofu.org/opentofu/tofu/any/"
   apt_repo_key_url: "https://packages.opentofu.org/opentofu/tofu/gpgkey"
-  apt_repo: "deb [signed-by=/etc/apt/keyrings/opentofu.gpg,/etc/apt/keyrings/opentofu-repo.gpg] https://packages.opentofu.org/opentofu/tofu/any/ any main"
 
-# AWS CLI v2. macOS: Homebrew formula (awscli). Debian: apt only ships the
-# deprecated v1, so use AWS's official installer zip (always latest; x86_64).
+# AWS CLI v2. macOS: Homebrew formula. Debian: Ubuntu Resolute packages v2.
 awscli:
   brew_formulae:
     - awscli
-  debian_installer_url: "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"
+  apt_packages:
+    - awscli
 
 bitwarden:
   brew_formulae:
     - bitwarden-cli
+  # Debian/WSL: no apt package; upstream release zip (single `bw` binary).
+  version: "2026.10.1"
+  linux_asset: "bw-linux{{ '-arm64' if deb_arch == 'arm64' else '' }}-{{ bitwarden.version }}.zip"
+  linux_url: "https://github.com/bitwarden/clients/releases/download/cli-v{{ bitwarden.version }}/{{ bitwarden.linux_asset }}"
 
 yazi:
+  # Debian/WSL: no Ubuntu package; upstream ships a .deb per arch (tracks latest).
+  deb_url: "https://github.com/sxyazi/yazi/releases/latest/download/yazi-{{ linux_arch }}-unknown-linux-gnu.deb"
   apt_packages:
     - ffmpeg
-    - p7zip-full
+    - 7zip   # p7zip-full is only a virtual package on 26.04
     - poppler-utils
     - fd-find
     - ripgrep
@@ -226,8 +216,9 @@ node:
   nvm_version: "v0.40.4"
   node_version: "--lts"
 
-# tflint (Terraform linter). No Homebrew formula — both macOS and Debian install
-# the upstream release zip into ~/.local/bin.
-# macOS: arm64 or amd64 based on ansible_facts.architecture. Debian: amd64 only.
+# tflint (Terraform linter). No Homebrew/apt package — both OSes install the
+# upstream release zip (arm64 or amd64) into ~/.local/bin.
 tflint:
   version: "0.63.1"
+  url: >-
+    https://github.com/terraform-linters/tflint/releases/download/v{{ tflint.version }}/tflint_{{ ansible_facts.system | lower }}_{{ deb_arch }}.zip

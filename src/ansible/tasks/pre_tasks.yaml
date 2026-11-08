@@ -1,3 +1,4 @@
+---
 - name: "Update apt cache"
   become: true
   ansible.builtin.apt:
@@ -14,9 +15,9 @@
     name: "{{ item.packages }}"
     state: present
   loop:
-    - { packages: [ "apt-transport-https", "gnupg", "ca-certificates" ], description: "Package management dependencies" }
-    - { packages: [ "fonts-powerline" ], description: "Powerline fonts" }
-    - { packages: [ "locales", "locales-all" ], description: "Locale support" }
+    - { packages: ["apt-transport-https", "gnupg", "ca-certificates"], description: "Package management dependencies" }
+    - { packages: ["fonts-powerline"], description: "Powerline fonts" }
+    - { packages: ["locales", "locales-all"], description: "Locale support" }
   when: ansible_facts.os_family == "Debian"
   tags:
     - initial-setup

@@ -1,16 +1,17 @@
-- name: "Cleanup existing zsh config files"
+---
+# Reinstall oh-my-zsh from scratch. ~/.zshrc and ~/.zshenv are deliberately left
+# alone: they are dotfiles symlinks, and the dotfiles setup backs up any real
+# files before stowing. Deleting them here left the shell broken whenever stow
+# later failed.
+- name: "Remove existing oh-my-zsh install"
   ansible.builtin.file:
-    path: "{{ item }}"
+    path: "{{ ansible_facts.env.HOME }}/.oh-my-zsh"
     state: absent
-  loop:
-    - "{{ ansible_facts.env.HOME }}/.oh-my-zsh"
-    - "{{ ansible_facts.env.HOME }}/.zshrc"
-    - "{{ ansible_facts.env.HOME }}/.zshenv"
   tags:
     - cleanup-zsh-config
 
 - name: "Check if zsh is installed"
-  command: which zsh
+  ansible.builtin.command: which zsh
   register: is_zsh_installed
   changed_when: false
   failed_when: false
@@ -35,26 +36,16 @@
   tags:
     - install-zsh
 
-
-- name: "Download oh-my-zsh installer"
-  ansible.builtin.get_url:
-    url: https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh
-    dest: "{{ ansible_facts.env.HOME }}/.oh-my-installer"
-    mode: '0700'
-  tags:
-    - oh-my-zsh-setup
-
+# KEEP_ZSHRC=yes: never replace an existing (stowed) ~/.zshrc with the template.
 - name: "Install oh-my-zsh"
-  ansible.builtin.command: "{{ ansible_facts.env.HOME }}/.oh-my-installer"
-  args:
-    creates: "{{ ansible_facts.env.HOME }}/.oh-my-zsh"
-  tags:
-    - oh-my-zsh-setup
-
-- name: "Remove oh-my-zsh installer"
-  ansible.builtin.file:
-    path: "{{ ansible_facts.env.HOME }}/.oh-my-installer"
-    state: absent
+  ansible.builtin.import_tasks: common/install-script.yaml
+  vars:
+    installer_name: oh-my-zsh
+    installer_url: https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh
+    installer_creates: "{{ ansible_facts.env.HOME }}/.oh-my-zsh"
+    installer_shell: sh
+    installer_env:
+      KEEP_ZSHRC: "yes"
   tags:
     - oh-my-zsh-setup
 
@@ -62,8 +53,9 @@
   ansible.builtin.git:
     repo: "https://github.com/zsh-users/zsh-autosuggestions.git"
     dest: "{{ ansible_facts.env.HOME }}/.oh-my-zsh/custom/plugins/zsh-autosuggestions"
-    clone: yes
-    update: yes
+    version: master
+    clone: true
+    update: true
   tags:
     - oh-my-zsh-setup
 
@@ -71,7 +63,8 @@
   ansible.builtin.git:
     repo: "https://github.com/zsh-users/zsh-syntax-highlighting.git"
     dest: "{{ ansible_facts.env.HOME }}/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting"
-    clone: yes
-    update: yes
+    version: master
+    clone: true
+    update: true
   tags:
     - oh-my-zsh-setup

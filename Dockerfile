@@ -1,4 +1,4 @@
-FROM ubuntu:noble AS base
+FROM ubuntu:resolute AS base
 WORKDIR /usr/local/bin
 ENV DEBIAN_FRONTEND=noninteractive
 ENV USERNAME=mtkhawaja

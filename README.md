@@ -8,8 +8,8 @@ See **[docs/CATALOG.md](./docs/CATALOG.md)** for the full list of tools that get
 
 | Platform | Status |
 |----------|--------|
-| Ubuntu / Debian | Supported (the original target) |
-| WSL (Ubuntu) | Supported (same apt path) |
+| Ubuntu 26.04 LTS (Resolute) | Supported, x86_64 and arm64 |
+| WSL (Ubuntu 26.04) | Supported (same apt path) |
 | macOS (Apple Silicon) | Supported — every task installs via Homebrew on the Darwin branch; verified by the `macos` CI job |
 | Windows (native) | Use WSL or the Docker image below |
 
@@ -31,7 +31,7 @@ docker build -t mtkhawaja/dev-env:latest . ; if ($?) { docker run -it --rm mtkha
 
 ## Set up a real machine
 
-> **Warning:** A full run modifies your home directory — it replaces `~/.zshrc`, `~/.zshenv`, and `~/.oh-my-zsh`, and force-overwrites `~/.dotfiles`. Try it in the Docker container first.
+> **Warning:** A full run modifies your home directory — it reinstalls `~/.oh-my-zsh`, force-overwrites `~/.dotfiles`, and stows them over `~/.zshrc`, `~/.zshenv` and friends. Try it in the Docker container first.
 
 Run the [convenience script](./setup.sh), which detects your OS, installs Ansible (Homebrew on macOS, the Ansible PPA on Linux), installs the required collections, and then runs the playbook:
 

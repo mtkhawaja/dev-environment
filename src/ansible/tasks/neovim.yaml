@@ -1,12 +1,7 @@
-- name: "Remove neovim source directory if exists (Debian)"
-  ansible.builtin.file:
-    path: "{{ ansible_facts.env.HOME }}/neovim"
-    state: absent
-  when: ansible_facts.os_family == "Debian"
-  tags:
-    - cleanup
-    - initial-setup
-    - nvim
+---
+# Neovim + tooling (tree-sitter CLI, stylua).
+#   macOS  -> Homebrew
+#   Debian -> apt (neovim) + tree-sitter and stylua release zips
 
 - name: "Install Neovim (macOS)"
   community.general.homebrew:
@@ -17,50 +12,32 @@
     - initial-setup
     - nvim
 
-- name: "Install Neovim build dependencies (Debian)"
+- name: "Install Neovim (Debian)"
   become: true
   ansible.builtin.apt:
-    name:
-      - ninja-build
-      - gettext
-      - cmake
-      - unzip
-      - curl
-      - pkg-config
+    name: "{{ neovim.apt_packages }}"
     state: present
   when: ansible_facts.os_family == "Debian"
   tags:
     - initial-setup
     - nvim
 
-- name: "Clone Neovim (Debian)"
-  ansible.builtin.git:
-    repo: 'https://github.com/neovim/neovim.git'
-    dest: "{{ ansible_facts.env.HOME }}/neovim"
-    clone: yes
-    update: yes
-  when: ansible_facts.os_family == "Debian"
-  tags:
-    - initial-setup
-    - nvim
-
-- name: "Build neovim (Debian)"
-  ansible.builtin.command:
-    cmd: make -j 20
-    chdir: "{{ ansible_facts.env.HOME }}/neovim"
-  when: ansible_facts.os_family == "Debian"
-  tags:
-    - initial-setup
-    - nvim
-
-- name: "Install neovim (Debian)"
+# Neovim used to be built from source into /usr/local, which would shadow the
+# apt package on PATH.
+- name: "Remove legacy source-built Neovim (Debian)"
   become: true
-  ansible.builtin.command:
-    cmd: make install
-    chdir: "{{ ansible_facts.env.HOME }}/neovim"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "{{ ansible_facts.env.HOME }}/neovim"
+    - /usr/local/bin/nvim
+    - /usr/local/share/nvim
+    - /usr/local/lib/nvim
   when: ansible_facts.os_family == "Debian"
   tags:
     - initial-setup
+    - cleanup
     - nvim
 
 - name: "Ensure ~/.local/bin exists (Debian)"
@@ -78,7 +55,7 @@
     src: "{{ item.url }}"
     dest: "{{ ansible_facts.env.HOME }}/.local/bin"
     remote_src: true
-    extra_opts: "{{ item.extra_opts }}"
+    extra_opts: ["-j"]
     creates: "{{ ansible_facts.env.HOME }}/.local/bin/{{ item.name }}"
   loop: "{{ neovim.release_binaries }}"
   when: ansible_facts.os_family == "Debian"

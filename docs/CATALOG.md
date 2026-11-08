@@ -4,7 +4,7 @@ Everything this repo installs when you provision a machine, grouped by purpose, 
 is generated from the Ansible task files in `src/ansible/tasks/` — when you add or remove a tool, update this list too.
 
 **Platform note:** every tool below installs on **both macOS (Apple Silicon, via Homebrew) and Debian / Ubuntu / WSL
-(via apt + release binaries)** — the cross-platform migration is complete. Each task branches on
+(Ubuntu 26.04, x86_64 or arm64, via apt + a few release binaries)** — the cross-platform migration is complete. Each task branches on
 `ansible_facts.os_family`. A few macOS substitutes apply where the Linux tool is platform-specific: `xclip` →
 `pbcopy`/`pbpaste` (built in), and `tofrodos` → `dos2unix`.
 
@@ -36,9 +36,9 @@ is generated from the Ansible task files in `src/ansible/tasks/` — when you ad
 
 | Tool                             | What it is            | Why it's useful                                                                                 |
 |----------------------------------|-----------------------|-------------------------------------------------------------------------------------------------|
-| **Neovim** | Modern Vim fork       | Fast, extensible modal editor. Built from `master` on Debian; installed via Homebrew on macOS. |
-| **tree-sitter** *(`tree-sitter-cli`)* | Parser generator CLI | Required by nvim-treesitter's `main` branch to compile syntax parsers locally. Release binary on Debian (x86_64). |
-| **StyLua**                       | Lua formatter         | Formats the Neovim config (`.stylua.toml`); also what the config repo's CI checks. Release binary on Debian (x86_64). |
+| **Neovim** | Modern Vim fork       | Fast, extensible modal editor. apt on Debian; Homebrew on macOS. |
+| **tree-sitter** *(`tree-sitter-cli`)* | Parser generator CLI | Required by nvim-treesitter's `main` branch to compile syntax parsers locally (needs ≥ 0.26.1). Pinned release binary on Debian (apt is too old). |
+| **StyLua**                       | Lua formatter         | Formats the Neovim config (`.stylua.toml`); also what the config repo's CI checks. Release binary on Debian. |
 
 ## AI assistant
 
@@ -59,7 +59,7 @@ is generated from the Ansible task files in `src/ansible/tasks/` — when you ad
 | **jq**                         | JSON processor        | Slice, filter, and transform JSON on the command line — essential for APIs and config.               |
 | **ripgrep** (`rg`)             | Recursive grep        | Extremely fast code/text search that respects `.gitignore`; the standard backend for editor search.  |
 | **bat**                        | `cat` with wings      | Syntax-highlighted, paged file viewer with line numbers and git markers.                             |
-| **tldr**                       | Simplified man pages  | Community-driven, example-first command help — faster than reading full `man` output.                |
+| **tldr** *(tealdeer)*          | Simplified man pages  | Community-driven, example-first command help — faster than reading full `man` output. Pages pre-fetched on install. |
 | **btop**                       | Resource monitor      | Pretty, interactive CPU/memory/process/network monitor (a modern `top`/`htop`).                      |
 | **tree**                       | Directory lister      | Renders directory structure as a tree for quick orientation.                                         |
 | **rsync**                      | File sync/transfer    | Efficient incremental copy/sync locally or over SSH.                                                 |
@@ -69,8 +69,8 @@ is generated from the Ansible task files in `src/ansible/tasks/` — when you ad
 | **expect**                     | TTY automation        | Script interactive prompts (passwords, confirmations).                                               |
 | **zip** / **unzip**            | Archive tools         | Create and extract `.zip` archives (also required to unpack some release binaries).                  |
 | **tofrodos**                   | Line-ending converter | Convert between DOS (CRLF) and Unix (LF) line endings — handy across Windows/WSL.                    |
-| **neofetch** / **fastfetch**   | System info           | At-a-glance OS/hardware summary for the terminal. Debian installs `neofetch`; macOS installs `fastfetch` (its maintained successor — neofetch is discontinued and gone from Homebrew). |
-| **gettext**                    | i18n utilities        | Provides `envsubst` and translation tooling; also a Neovim build dependency.                         |
+| **fastfetch**                  | System info           | At-a-glance OS/hardware summary for the terminal (maintained successor to the discontinued neofetch). |
+| **gettext**                    | i18n utilities        | Provides `envsubst` and translation tooling.                         |
 | **man-db**, **manpages-posix** | Manual pages          | Local documentation for commands and POSIX APIs.                                                     |
 | **locales**, **locales-all**   | Locale data           | Ensures UTF-8 and locale settings work correctly (avoids `LC_*` warnings).                           |
 
@@ -124,7 +124,7 @@ is generated from the Ansible task files in `src/ansible/tasks/` — when you ad
 
 | Tool          | What it is         | Why it's useful                                                           |
 |---------------|--------------------|---------------------------------------------------------------------------|
-| **Go 1.24.4** | Go toolchain       | Compiler and tooling for Go development. Pinned `linux-amd64` tarball on Debian; Homebrew on macOS. |
+| **Go** | Go toolchain       | Compiler and tooling for Go development. Latest go.dev release on Debian (updated on re-run); Homebrew on macOS. |
 | **gopls**     | Go language server | LSP backend powering editor completion, diagnostics, and refactoring.     |
 
 ## Secrets & signing
@@ -145,10 +145,10 @@ is generated from the Ansible task files in `src/ansible/tasks/` — when you ad
 | **ffmpeg**        | Media toolkit  | Transcode/inspect audio and video; powers Yazi video thumbnails. |
 | **imagemagick**   | Image toolkit  | Convert and manipulate images; enables image previews.           |
 | **poppler-utils** | PDF utilities  | Render/extract from PDFs (e.g. `pdftoppm`) for previews.         |
-| **p7zip-full**    | 7-Zip archiver | Handle `.7z` and many other archive formats.                     |
+| **7zip**          | 7-Zip archiver | Handle `.7z` and many other archive formats.                     |
 
 ## Build toolchain
 
 *(`tools.yaml`, `neovim.yaml`)*
 
-Building Neovim from source (Debian) and other native dependencies needs a C/C++ toolchain. Installed on Debian via apt: **build-essential** (gcc/g++/make), **cmake**, **ninja-build**, **pkg-config**, **libtool**/**libtool-bin**, **lua5.1**, **libpthread-stubs0-dev**. macOS relies on the Xcode Command Line Tools plus the Homebrew equivalents (`cmake`, `ninja`, `pkg-config`, `libtool`, `lua`). Python needs no build deps — uv installs prebuilt standalone interpreters.
+Building native dependencies needs a C/C++ toolchain. Installed on Debian via apt: **build-essential** (gcc/g++/make), **cmake**, **ninja-build**, **pkg-config**, **libtool**/**libtool-bin**, **lua5.1**, **libpthread-stubs0-dev**. macOS relies on the Xcode Command Line Tools plus the Homebrew equivalents (`cmake`, `ninja`, `pkg-config`, `libtool`, `lua`). Python needs no build deps — uv installs prebuilt standalone interpreters.

@@ -1,0 +1,43 @@
+---
+# Shared "download an upstream install script and run it" steps, used via
+# import_tasks (so the caller's tags apply). Skipped when installer_creates
+# already exists. The script goes into a private temp dir (never a predictable
+# /tmp path) that is always removed afterwards.
+#
+# Vars:
+#   installer_name     label for task names
+#   installer_url      script URL
+#   installer_creates  path the installer produces
+#   installer_shell    interpreter (default: bash)
+#   installer_env      extra environment for the script (default: {})
+
+- name: "Check whether already installed: {{ installer_name }}"
+  ansible.builtin.stat:
+    path: "{{ installer_creates }}"
+  register: installer_target
+
+- name: "Install via upstream script: {{ installer_name }}"
+  when: not installer_target.stat.exists
+  block:
+    - name: "Create a private temp dir for the installer: {{ installer_name }}"
+      ansible.builtin.tempfile:
+        state: directory
+      register: installer_dir
+
+    - name: "Download the installer: {{ installer_name }}"
+      ansible.builtin.get_url:
+        url: "{{ installer_url }}"
+        dest: "{{ installer_dir.path }}/install.sh"
+        mode: '0700'
+
+    - name: "Run the installer: {{ installer_name }}"
+      ansible.builtin.command: "{{ installer_shell | default('bash') }} {{ installer_dir.path }}/install.sh"
+      environment: "{{ installer_env | default({}) }}"
+      changed_when: true
+
+  always:
+    - name: "Remove the installer temp dir: {{ installer_name }}"
+      ansible.builtin.file:
+        path: "{{ installer_dir.path }}"
+        state: absent
+      when: installer_dir.path is defined

@@ -9,63 +9,20 @@
     - initial-setup
     - cli-tools
 
-- name: "Download eza GPG key"
-  become: true
-  ansible.builtin.get_url:
-    url: https://raw.githubusercontent.com/eza-community/eza/main/deb.asc
-    dest: /tmp/eza.asc
-    mode: '0644'
-  register: eza_key_downloaded
-  when: ansible_facts.os_family == "Debian"
-  tags:
-    - initial-setup
-    - cli-tools
-    - eza
-
-- name: "Import eza GPG key"
-  become: true
-  ansible.builtin.shell: cat /tmp/eza.asc | gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
-  args:
-    creates: /etc/apt/keyrings/gierens.gpg
-  when: ansible_facts.os_family == "Debian" and eza_key_downloaded is changed
-  tags:
-    - initial-setup
-    - cli-tools
-    - eza
-
-- name: "Add eza repository"
-  become: true
-  ansible.builtin.apt_repository:
-    repo: "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main"
-    filename: gierens
-    state: present
-    update_cache: true
-  when: ansible_facts.os_family == "Debian"
-  tags:
-    - initial-setup
-    - cli-tools
-    - eza
-
-- name: "Install eza (Debian)"
-  become: true
-  ansible.builtin.apt:
-    name: eza
-    state: present
-    update_cache: false
-  when: ansible_facts.os_family == "Debian"
-  tags:
-    - initial-setup
-    - cli-tools
-    - eza
-
-- name: "Clean up eza temporary files"
+# eza now comes from Ubuntu's own archive (tools.apt_packages); drop the
+# third-party gierens repo older runs added.
+- name: "Remove legacy eza apt repository (Debian)"
   become: true
   ansible.builtin.file:
-    path: /tmp/eza.asc
+    path: "{{ item }}"
     state: absent
+  loop:
+    - /etc/apt/sources.list.d/gierens.list
+    - /etc/apt/keyrings/gierens.gpg
   when: ansible_facts.os_family == "Debian"
   tags:
     - initial-setup
+    - cleanup
     - cli-tools
     - eza
 
@@ -91,6 +48,33 @@
     - initial-setup
     - cli-tools
 
+# tealdeer replaces the tldr C client; both ship bin/tldr. The tldr formula is
+# gone from homebrew-core (so the homebrew module errors on it), but an
+# existing keg can still be uninstalled with brew directly.
+- name: "Check for the legacy tldr formula (macOS)"
+  ansible.builtin.command: brew list --formula tldr
+  environment:
+    PATH: "/opt/homebrew/bin:/usr/local/bin:{{ ansible_facts.env.PATH }}"
+  register: legacy_tldr
+  changed_when: false
+  failed_when: false
+  when: ansible_facts.os_family == "Darwin"
+  tags:
+    - initial-setup
+    - cli-tools
+    - tealdeer
+
+- name: "Uninstall the legacy tldr formula (macOS)"
+  ansible.builtin.command: brew uninstall --formula tldr
+  environment:
+    PATH: "/opt/homebrew/bin:/usr/local/bin:{{ ansible_facts.env.PATH }}"
+  changed_when: true
+  when: ansible_facts.os_family == "Darwin" and legacy_tldr.rc == 0
+  tags:
+    - initial-setup
+    - cli-tools
+    - tealdeer
+
 - name: "Install CLI tools (macOS)"
   community.general.homebrew:
     name: "{{ tools.brew_formulae }}"
@@ -99,3 +83,28 @@
   tags:
     - initial-setup
     - cli-tools
+
+# tealdeer ships without pages; fetch them once. `--list` prints nothing (or
+# fails) until the cache holds pages.
+- name: "Check for a populated tldr page cache"
+  ansible.builtin.command: tldr --list
+  environment:
+    PATH: "/opt/homebrew/bin:/usr/local/bin:{{ ansible_facts.env.PATH }}"
+  register: tldr_list
+  changed_when: false
+  failed_when: false
+  tags:
+    - initial-setup
+    - cli-tools
+    - tealdeer
+
+- name: "Download tldr pages"
+  ansible.builtin.command: tldr --update
+  environment:
+    PATH: "/opt/homebrew/bin:/usr/local/bin:{{ ansible_facts.env.PATH }}"
+  when: tldr_list.rc != 0 or tldr_list.stdout | length == 0
+  changed_when: true
+  tags:
+    - initial-setup
+    - cli-tools
+    - tealdeer

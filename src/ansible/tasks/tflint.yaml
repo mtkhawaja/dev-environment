@@ -1,43 +1,7 @@
 ---
-# tflint (Terraform linter). Cross-platform:
-#   macOS  -> upstream release zip into ~/.local/bin (arm64 or amd64)
-#   Debian -> upstream release zip into ~/.local/bin (x86_64-only)
-# No Homebrew formula exists; version pinned in vars/main.yml.
+# tflint (Terraform linter). No Homebrew/apt package, so both OSes install the
+# upstream release zip (arm64 or amd64) into ~/.local/bin. Pinned in vars/main.yml.
 
-# ---------- macOS ----------
-- name: "Ensure ~/.local/bin exists (macOS)"
-  ansible.builtin.file:
-    path: "{{ ansible_facts.env.HOME }}/.local/bin"
-    state: directory
-    mode: '0755'
-  when: ansible_facts.os_family == "Darwin"
-  tags:
-    - initial-setup
-    - tflint
-
-- name: "Install tflint from release zip (macOS)"
-  ansible.builtin.unarchive:
-    src: "https://github.com/terraform-linters/tflint/releases/download/v{{ tflint.version }}/tflint_darwin_{{ 'arm64' if ansible_facts.architecture == 'arm64' else 'amd64' }}.zip"
-    dest: "{{ ansible_facts.env.HOME }}/.local/bin"
-    remote_src: true
-    extra_opts: ["-j"]
-    creates: "{{ ansible_facts.env.HOME }}/.local/bin/tflint"
-  when: ansible_facts.os_family == "Darwin"
-  tags:
-    - initial-setup
-    - tflint
-
-- name: "Ensure tflint binary is executable (macOS)"
-  ansible.builtin.file:
-    path: "{{ ansible_facts.env.HOME }}/.local/bin/tflint"
-    mode: '0755'
-    state: file
-  when: ansible_facts.os_family == "Darwin"
-  tags:
-    - initial-setup
-    - tflint
-
-# ---------- Debian / WSL ----------
 - name: "Ensure unzip is available (Debian)"
   become: true
   ansible.builtin.apt:
@@ -48,34 +12,31 @@
     - initial-setup
     - tflint
 
-- name: "Ensure ~/.local/bin exists (Debian)"
+- name: "Ensure ~/.local/bin exists"
   ansible.builtin.file:
     path: "{{ ansible_facts.env.HOME }}/.local/bin"
     state: directory
     mode: '0755'
-  when: ansible_facts.os_family == "Debian"
   tags:
     - initial-setup
     - tflint
 
-- name: "Install tflint from release zip (Debian)"
+- name: "Install tflint from release zip"
   ansible.builtin.unarchive:
-    src: "https://github.com/terraform-linters/tflint/releases/download/v{{ tflint.version }}/tflint_linux_amd64.zip"
+    src: "{{ tflint.url }}"
     dest: "{{ ansible_facts.env.HOME }}/.local/bin"
     remote_src: true
     extra_opts: ["-j"]
     creates: "{{ ansible_facts.env.HOME }}/.local/bin/tflint"
-  when: ansible_facts.os_family == "Debian"
   tags:
     - initial-setup
     - tflint
 
-- name: "Ensure tflint binary is executable (Debian)"
+- name: "Ensure tflint binary is executable"
   ansible.builtin.file:
     path: "{{ ansible_facts.env.HOME }}/.local/bin/tflint"
     mode: '0755'
     state: file
-  when: ansible_facts.os_family == "Debian"
   tags:
     - initial-setup
     - tflint

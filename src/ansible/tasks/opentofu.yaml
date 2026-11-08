@@ -1,7 +1,7 @@
 ---
 # OpenTofu (Terraform fork). Unpinned on both platforms to track latest.
 #   macOS  -> Homebrew (opentofu formula)
-#   Debian -> official OpenTofu apt repo, `tofu` package (binary is `tofu`)
+#   Debian -> official OpenTofu apt repo (deb822 .sources), `tofu` package
 
 # ---------- macOS ----------
 - name: "Install OpenTofu (macOS)"
@@ -14,62 +14,42 @@
     - opentofu
 
 # ---------- Debian / WSL ----------
-- name: "Ensure apt keyrings directory exists (Debian)"
+# Older runs wrote a one-line .list with its own keyrings; apt rejects two
+# entries for the same repo with different Signed-By, so drop them first.
+- name: "Remove legacy OpenTofu .list repository (Debian)"
   become: true
   ansible.builtin.file:
-    path: /etc/apt/keyrings
-    state: directory
-    mode: '0755'
-  when: ansible_facts.os_family == "Debian"
-  tags:
-    - initial-setup
-    - opentofu
-
-- name: "Download OpenTofu GPG keys (Debian)"
-  become: true
-  ansible.builtin.get_url:
-    url: "{{ item.url }}"
-    dest: "{{ item.dest }}"
-    mode: '0644'
+    path: "{{ item }}"
+    state: absent
   loop:
-    - { url: "{{ opentofu.apt_key_url }}", dest: "/tmp/opentofu.gpg" }
-    - { url: "{{ opentofu.apt_repo_key_url }}", dest: "/tmp/opentofu-repo.asc" }
-  register: opentofu_keys_downloaded
+    - /etc/apt/sources.list.d/opentofu.list
+    - /etc/apt/keyrings/opentofu.gpg
+    - /etc/apt/keyrings/opentofu-repo.gpg
   when: ansible_facts.os_family == "Debian"
   tags:
     - initial-setup
+    - cleanup
     - opentofu
 
-# opentofu.gpg is already a binary keyring; the repo key is ASCII-armored.
-- name: "Install OpenTofu project key (Debian)"
+- name: "Ensure python3-debian is present for deb822_repository (Debian)"
   become: true
-  ansible.builtin.copy:
-    src: /tmp/opentofu.gpg
-    dest: /etc/apt/keyrings/opentofu.gpg
-    remote_src: true
-    mode: '0644'
-  when: ansible_facts.os_family == "Debian" and opentofu_keys_downloaded is changed
-  tags:
-    - initial-setup
-    - opentofu
-
-- name: "Dearmor OpenTofu repo key (Debian)"
-  become: true
-  ansible.builtin.shell: gpg --no-tty --batch --dearmor -o /etc/apt/keyrings/opentofu-repo.gpg /tmp/opentofu-repo.asc
-  args:
-    creates: /etc/apt/keyrings/opentofu-repo.gpg
-  when: ansible_facts.os_family == "Debian" and opentofu_keys_downloaded is changed
+  ansible.builtin.apt:
+    name: python3-debian
+    state: present
+  when: ansible_facts.os_family == "Debian"
   tags:
     - initial-setup
     - opentofu
 
 - name: "Add OpenTofu apt repository (Debian)"
   become: true
-  ansible.builtin.apt_repository:
-    repo: "{{ opentofu.apt_repo }}"
-    filename: opentofu
-    state: present
-    update_cache: true
+  ansible.builtin.deb822_repository:
+    name: opentofu
+    types: deb
+    uris: "{{ opentofu.apt_repo_uri }}"
+    suites: any
+    components: main
+    signed_by: "{{ opentofu.apt_repo_key_url }}"
   when: ansible_facts.os_family == "Debian"
   tags:
     - initial-setup
@@ -80,20 +60,7 @@
   ansible.builtin.apt:
     name: tofu
     state: present
-    update_cache: false
-  when: ansible_facts.os_family == "Debian"
-  tags:
-    - initial-setup
-    - opentofu
-
-- name: "Clean up OpenTofu key downloads (Debian)"
-  become: true
-  ansible.builtin.file:
-    path: "{{ item }}"
-    state: absent
-  loop:
-    - /tmp/opentofu.gpg
-    - /tmp/opentofu-repo.asc
+    update_cache: true
   when: ansible_facts.os_family == "Debian"
   tags:
     - initial-setup

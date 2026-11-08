@@ -1,28 +1,49 @@
-- hosts: localhost
+---
+- name: Provision the development environment
+  hosts: localhost
   connection: local
   vars_files:
     - src/ansible/vars/main.yml
   pre_tasks:
-    - import_tasks: src/ansible/tasks/pre_tasks.yaml
-    - import_tasks: src/ansible/tasks/directories.yaml
+    - name: Base packages
+      ansible.builtin.import_tasks: src/ansible/tasks/pre_tasks.yaml
+    - name: Standard directories
+      ansible.builtin.import_tasks: src/ansible/tasks/directories.yaml
 
   tasks:
-    - import_tasks: src/ansible/tasks/zsh.yaml
-    - import_tasks: src/ansible/tasks/dotfiles.yaml
-    - import_tasks: src/ansible/tasks/tools.yaml
-    - import_tasks: src/ansible/tasks/sdkman.yaml
-    - import_tasks: src/ansible/tasks/neovim.yaml
-    - import_tasks: src/ansible/tasks/java.yaml
-    - import_tasks: src/ansible/tasks/js.yaml
-    - import_tasks: src/ansible/tasks/bun.yaml
-    - import_tasks: src/ansible/tasks/bitwarden-cli.yaml
-    - import_tasks: src/ansible/tasks/python.yaml
-    - import_tasks: src/ansible/tasks/yazi.yaml
-    - import_tasks: src/ansible/tasks/go.yaml
-    - import_tasks: src/ansible/tasks/opentofu.yaml
-    - import_tasks: src/ansible/tasks/tflint.yaml
-    - import_tasks: src/ansible/tasks/awscli.yaml
-    - import_tasks: src/ansible/tasks/modern-cli.yaml
-    - import_tasks: src/ansible/tasks/apps.yaml
-    - import_tasks: src/ansible/tasks/claude-code.yaml
-    - import_tasks: src/ansible/tasks/codex.yaml
+    - name: Zsh + oh-my-zsh
+      ansible.builtin.import_tasks: src/ansible/tasks/zsh.yaml
+    - name: Dotfiles
+      ansible.builtin.import_tasks: src/ansible/tasks/dotfiles.yaml
+    - name: CLI tools
+      ansible.builtin.import_tasks: src/ansible/tasks/tools.yaml
+    - name: SDKMAN
+      ansible.builtin.import_tasks: src/ansible/tasks/sdkman.yaml
+    - name: Neovim
+      ansible.builtin.import_tasks: src/ansible/tasks/neovim.yaml
+    - name: Java
+      ansible.builtin.import_tasks: src/ansible/tasks/java.yaml
+    - name: Node.js
+      ansible.builtin.import_tasks: src/ansible/tasks/js.yaml
+    - name: Bun
+      ansible.builtin.import_tasks: src/ansible/tasks/bun.yaml
+    - name: Bitwarden CLI
+      ansible.builtin.import_tasks: src/ansible/tasks/bitwarden-cli.yaml
+    - name: Python
+      ansible.builtin.import_tasks: src/ansible/tasks/python.yaml
+    - name: Yazi
+      ansible.builtin.import_tasks: src/ansible/tasks/yazi.yaml
+    - name: Go
+      ansible.builtin.import_tasks: src/ansible/tasks/go.yaml
+    - name: OpenTofu
+      ansible.builtin.import_tasks: src/ansible/tasks/opentofu.yaml
+    - name: Tflint
+      ansible.builtin.import_tasks: src/ansible/tasks/tflint.yaml
+    - name: AWS CLI
+      ansible.builtin.import_tasks: src/ansible/tasks/awscli.yaml
+    - name: Modern CLI tools
+      ansible.builtin.import_tasks: src/ansible/tasks/modern-cli.yaml
+    - name: GUI apps
+      ansible.builtin.import_tasks: src/ansible/tasks/apps.yaml
+    - name: Claude Code
+      ansible.builtin.import_tasks: src/ansible/tasks/claude-code.yaml

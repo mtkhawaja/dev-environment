@@ -1,34 +1,7 @@
-- name: "Set Go version"
-  set_fact:
-    go_version: "1.24.4"
-
-- name: "Download Go {{ go_version }} tarball (Debian)"
-  get_url:
-    url: "https://go.dev/dl/go{{ go_version }}.linux-amd64.tar.gz"
-    dest: "/tmp/go{{ go_version }}.tar.gz"
-    mode: '0644'
-  when: ansible_facts.os_family == "Debian"
-  tags:
-    - go
-
-- name: "Remove existing Go installation (if any) (Debian)"
-  become: true
-  file:
-    path: /usr/local/go
-    state: absent
-  when: ansible_facts.os_family == "Debian"
-  tags:
-    - go
-
-- name: "Extract Go {{ go_version }} to /usr/local (Debian)"
-  become: true
-  unarchive:
-    src: "/tmp/go{{ go_version }}.tar.gz"
-    dest: /usr/local
-    remote_src: true
-  when: ansible_facts.os_family == "Debian"
-  tags:
-    - go
+---
+# Go.
+#   macOS  -> Homebrew
+#   Debian -> latest go.dev release tarball into /usr/local/go (amd64 or arm64)
 
 - name: "Install Go (macOS)"
   community.general.homebrew:
@@ -38,8 +11,73 @@
   tags:
     - go
 
+- name: "Look up the latest Go release (Debian)"
+  ansible.builtin.uri:
+    url: "{{ go.latest_version_url }}"
+    return_content: true
+  register: go_latest
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - go
+
+- name: "Check the installed Go version (Debian)"
+  ansible.builtin.command: /usr/local/go/bin/go env GOVERSION
+  register: go_installed
+  changed_when: false
+  failed_when: false
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - go
+
+- name: "Resolve the latest Go version (Debian)"
+  ansible.builtin.set_fact:
+    go_version: "{{ go_latest.content.splitlines() | first }}"
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - go
+
+- name: "Install the latest Go release (Debian)"
+  when:
+    - ansible_facts.os_family == "Debian"
+    - go_installed.stdout | default('') != go_version
+  tags:
+    - go
+  block:
+    # Download first so a failed fetch leaves the existing install intact.
+    - name: "Create a private temp dir for the Go tarball (Debian)"
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: -go
+      register: go_download_dir
+
+    - name: "Download the latest Go tarball (Debian)"
+      ansible.builtin.get_url:
+        url: "https://go.dev/dl/{{ go_version }}.linux-{{ deb_arch }}.tar.gz"
+        dest: "{{ go_download_dir.path }}/go.tar.gz"
+        mode: '0644'
+
+    - name: "Remove the previous Go installation (Debian)"
+      become: true
+      ansible.builtin.file:
+        path: /usr/local/go
+        state: absent
+
+    - name: "Extract Go into /usr/local (Debian)"
+      become: true
+      ansible.builtin.unarchive:
+        src: "{{ go_download_dir.path }}/go.tar.gz"
+        dest: /usr/local
+        remote_src: true
+
+  always:
+    - name: "Remove the Go download temp dir (Debian)"
+      ansible.builtin.file:
+        path: "{{ go_download_dir.path }}"
+        state: absent
+      when: go_download_dir.path is defined
+
 - name: "Ensure Go workspace directories exist"
-  file:
+  ansible.builtin.file:
     path: "{{ item }}"
     state: directory
     mode: '0755'
@@ -52,11 +90,10 @@
 # GOPATH / Go PATH exports live in the dotfiles repo (.zshenv), not here.
 
 - name: "Install gopls (Go language server)"
-  shell: |
-    export PATH="$PATH:/usr/local/go/bin:/opt/homebrew/bin:/usr/local/bin"
-    command -v go >/dev/null && go install golang.org/x/tools/gopls@latest
+  ansible.builtin.command: go install golang.org/x/tools/gopls@latest
+  environment:
+    PATH: "/usr/local/go/bin:/opt/homebrew/bin:/usr/local/bin:{{ ansible_facts.env.PATH }}"
   args:
-    executable: /bin/bash
     creates: "{{ ansible_facts.env.HOME }}/go/bin/gopls"
   tags:
     - go

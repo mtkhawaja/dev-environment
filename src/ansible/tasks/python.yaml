@@ -5,11 +5,14 @@
 # installer runs with UV_NO_MODIFY_PATH=1.
 
 - name: "Install uv (Astral)"
-  ansible.builtin.shell: |
-    curl -LsSf https://astral.sh/uv/install.sh | env UV_NO_MODIFY_PATH=1 sh
-  args:
-    executable: /bin/bash
-    creates: "{{ ansible_facts.env.HOME }}/.local/bin/uv"
+  ansible.builtin.import_tasks: common/install-script.yaml
+  vars:
+    installer_name: uv
+    installer_url: https://astral.sh/uv/install.sh
+    installer_creates: "{{ ansible_facts.env.HOME }}/.local/bin/uv"
+    installer_shell: sh
+    installer_env:
+      UV_NO_MODIFY_PATH: "1"
   tags:
     - initial-setup
     - python

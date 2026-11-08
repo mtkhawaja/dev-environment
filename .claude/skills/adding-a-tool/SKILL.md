@@ -31,11 +31,11 @@ macOS is always Homebrew. For Debian, pick the first that works, in this order:
 ```dot
 digraph debian_install {
     rankdir=TB;
-    apt [shape=diamond, label="In apt (Ubuntu Noble)\nat an acceptable version?"];
+    apt [shape=diamond, label="In apt (Ubuntu Resolute)\nat an acceptable version?"];
     use_apt [shape=box, label="apt_packages (preferred)"];
     deb [shape=diamond, label="Upstream ships a .deb?"];
     use_deb [shape=box, label="get_url -> apt deb: -> remove .deb"];
-    use_rel [shape=box, label="Release tarball/zip -> unarchive\ninto ~/.local/bin (x86_64 only)"];
+    use_rel [shape=box, label="Release tarball/zip -> unarchive\ninto ~/.local/bin (arch via linux_arch/deb_arch)"];
 
     apt -> use_apt [label="yes"];
     apt -> deb [label="no"];
@@ -66,15 +66,16 @@ digraph debian_install {
   tags: [ initial-setup, <area> ]
 ```
 
-For release binaries on Debian, follow `modern-cli.yaml`: ensure `~/.local/bin` exists (already on PATH), `unarchive`
+For release binaries on Debian, follow `tflint.yaml` / `neovim.yaml` (stylua): ensure `~/.local/bin` exists (already on PATH), `unarchive`
 with per-asset `extra_opts` to normalize layout (`--strip-components=1` for nested tarballs, `-j` for flat zips), set
-the binary executable, and use `creates:` for idempotency. For `.zip` assets, `unzip` must be installed first.
+the binary executable, and use `creates:` for idempotency. Build the URL with `{{ linux_arch }}` (`x86_64`/`aarch64`)
+or `{{ deb_arch }}` (`amd64`/`arm64`) so it works on both architectures. For `.zip` assets, `unzip` must be installed first.
 
 ## Version pinning
 
 **If you must pin a version, check the latest stable release FIRST** (GitHub releases / `brew info` / upstream) and pin
 to that — do not pin to whatever version a stale example happens to show. Pins live in `src/ansible/vars/main.yml` (e.g.
-`modern_cli_versions`). Prefer leaving package-manager installs unpinned (`state: present`); pin only release binaries /
+`tflint.version`). Prefer leaving package-manager installs unpinned (`state: present`); pin only release binaries /
 `.deb` URLs where the version is part of the download path.
 
 ## Guardrails
@@ -83,16 +84,17 @@ to that — do not pin to whatever version a stale example happens to show. Pins
 |-------------------------------------------------------------------|------------------------------------------------------------------------------|
 | Branch on `os_family` for every install task                      | A bare apt task silently breaks macOS; this is the #1 mistake here.          |
 | Package data → `vars/main.yml`, not inline                        | Single source of truth the whole migration reuses.                           |
-| Clean up downloads (`.deb`, installers, temp) in a follow-up task | Matches existing tasks (`modern-cli.yaml`, `tools.yaml` eza).                |
+| Clean up downloads (`.deb`, installers, temp) in a follow-up task | Matches existing tasks (`common/install-script.yaml`).                      |
 | Make tasks idempotent (`creates:`, `when: ... is changed`)        | The playbook is re-run often; second run must be a no-op.                    |
 | Tag everything                                                    | Enables `--tags <area>` scoped runs and Docker `TAGS`.                       |
-| Linux release binaries are **x86_64-only**                        | No arm64 yet; note the limitation, don't fake it.                            |
+| Linux release URLs use `linux_arch` / `deb_arch`                  | Hosts may be x86_64 or arm64; never hardcode one arch.                       |
+| `ansible-lint` passes                                             | Blocking in CI; FQCNs; install scripts via `common/install-script.yaml`.     |
 | New collections → `requirements.yml`                              | `community.general` (Homebrew module) is installed from there by `setup.sh`. |
 
 ## Verification
 
 ```bash
-# Scoped local run (safe-ish) — NOT a bare full run (that wipes ~/.zshrc, ~/.dotfiles)
+# Scoped local run (safe-ish) — NOT a bare full run (that reinstalls ~/.oh-my-zsh and force-resets ~/.dotfiles)
 ansible-playbook -i localhost, local.yaml --tags <area>
 
 # Full end-to-end on a throwaway Ubuntu container
@@ -110,8 +112,8 @@ Mac — the Docker image only covers the Debian branch.
 - **Forgetting `unzip`** before a `.zip` release archive on Debian, or omitting `extra_opts` so the binary lands in a
   nested dir off PATH.
 - **Skipping cleanup**, leaving `.deb`/temp files behind.
-- **Reaching for a release binary when apt/brew has the tool** — a release binary is x86_64-only and the *last* resort;
-  check apt (Debian) first so arm64 hosts are covered too.
+- **Reaching for a release binary when apt/brew has the tool** — a release binary is the *last* resort;
+  check apt (Debian) first, even if it lags upstream a little.
 - **Assuming install == activation** — some tools (e.g. `zoxide`, `fzf`, `direnv`) need a shell-init hook (
   `eval "$(zoxide init zsh)"`) to do anything. Shell config lives in the **separate `mtkhawaja/dotfiles` repo**, not
   here; this repo only installs the binary. Note the dotfiles follow-up when the tool needs one.

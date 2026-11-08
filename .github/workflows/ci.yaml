@@ -2,28 +2,28 @@ name: ci
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install Ansible + lint
         run: pip install ansible ansible-lint
       - name: Syntax check
         run: ansible-playbook --syntax-check local.yaml
       - name: Ansible lint
-        run: ansible-lint || true   # advisory until the playbook is lint-clean
+        run: ansible-lint
 
   macos:
     runs-on: macos-26          # Apple Silicon (arm64) — the target arch
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install Ansible
         run: brew install ansible
       - name: Install collections

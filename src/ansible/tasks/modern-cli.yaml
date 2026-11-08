@@ -1,7 +1,7 @@
 ---
-# Modern CLI tools. Cross-platform pilot:
+# Modern CLI tools.
 #   macOS  -> Homebrew (all formulae)
-#   Debian -> apt (hyperfine, duf) + delta .deb + release binaries (lazygit, dust, sd, procs)
+#   Debian -> apt (all packaged in Ubuntu Resolute)
 
 # ---------- macOS ----------
 - name: "Install modern CLI tools (macOS)"
@@ -13,7 +13,7 @@
     - modern-cli
 
 # ---------- Debian / WSL ----------
-- name: "Install modern CLI tools available via apt (Debian)"
+- name: "Install modern CLI tools (Debian)"
   become: true
   ansible.builtin.apt:
     name: "{{ modern_cli.apt_packages }}"
@@ -23,71 +23,15 @@
   tags:
     - modern-cli
 
-- name: "Download delta .deb (Debian)"
-  ansible.builtin.get_url:
-    url: "{{ modern_cli.delta_deb_url }}"
-    dest: "/tmp/git-delta_{{ modern_cli_versions.delta }}_amd64.deb"
-    mode: '0644'
-  when: ansible_facts.os_family == "Debian"
-  tags:
-    - modern-cli
-    - delta
-
-- name: "Install delta from .deb (Debian)"
-  become: true
-  ansible.builtin.apt:
-    deb: "/tmp/git-delta_{{ modern_cli_versions.delta }}_amd64.deb"
-    state: present
-  when: ansible_facts.os_family == "Debian"
-  tags:
-    - modern-cli
-    - delta
-
-- name: "Remove delta .deb (Debian)"
+# Release binaries from before the apt migration would shadow the apt ones
+# (~/.local/bin is first on PATH).
+- name: "Remove legacy release binaries (Debian)"
   ansible.builtin.file:
-    path: "/tmp/git-delta_{{ modern_cli_versions.delta }}_amd64.deb"
+    path: "{{ ansible_facts.env.HOME }}/.local/bin/{{ item }}"
     state: absent
+  loop: [lazygit, dust, sd, procs]
   when: ansible_facts.os_family == "Debian"
   tags:
-    - modern-cli
-    - delta
-
-- name: "Ensure unzip is available for .zip release archives (Debian)"
-  become: true
-  ansible.builtin.apt:
-    name: unzip
-    state: present
-  when: ansible_facts.os_family == "Debian"
-  tags:
-    - modern-cli
-
-- name: "Ensure ~/.local/bin exists (Debian)"
-  ansible.builtin.file:
-    path: "{{ ansible_facts.env.HOME }}/.local/bin"
-    state: directory
-    mode: '0755'
-  when: ansible_facts.os_family == "Debian"
-  tags:
-    - modern-cli
-
-- name: "Install release-binary modern CLI tools (Debian)"
-  ansible.builtin.unarchive:
-    src: "{{ item.url }}"
-    dest: "{{ ansible_facts.env.HOME }}/.local/bin"
-    remote_src: true
-    extra_opts: "{{ item.extra_opts }}"
-    creates: "{{ ansible_facts.env.HOME }}/.local/bin/{{ item.name }}"
-  loop: "{{ modern_cli.release_binaries }}"
-  when: ansible_facts.os_family == "Debian"
-  tags:
-    - modern-cli
-
-- name: "Ensure release binaries are executable (Debian)"
-  ansible.builtin.file:
-    path: "{{ ansible_facts.env.HOME }}/.local/bin/{{ item.name }}"
-    mode: '0755'
-    state: file
-  loop: "{{ modern_cli.release_binaries }}"
-  when: ansible_facts.os_family == "Debian"
-  tags:
+    - initial-setup
+    - cleanup
     - modern-cli

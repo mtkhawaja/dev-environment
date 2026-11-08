@@ -1,27 +1,11 @@
-- name: Check if SDKMAN is installed
-  ansible.builtin.stat:
-    path: "{{ ansible_facts.env.HOME }}/.sdkman/bin/sdkman-init.sh"
-  register: sdkman_init
-
-- name: Download SDKMAN installer
-  ansible.builtin.get_url:
-    url: https://get.sdkman.io
-    dest: /tmp/sdkman_installer.sh
-    mode: '0700'
-  when: not sdkman_init.stat.exists
-
+---
 # Run the installer under zsh on macOS (bash 3.2 there trips SDKMAN's bash-4
 # gate; zsh skips it). Debian uses bash 5.x. See sdkman_shell in vars/main.yml.
-- name: Install SDKMAN
-  ansible.builtin.shell: "{{ sdkman_shell }} /tmp/sdkman_installer.sh"
-  args:
-    creates: "{{ ansible_facts.env.HOME }}/.sdkman/bin/sdkman-init.sh"
-  when: not sdkman_init.stat.exists
-
 # Shell init (sourcing sdkman-init.sh) lives in the dotfiles repo (.zshenv), not here.
-
-- name: Clean up installer
-  ansible.builtin.file:
-    path: /tmp/sdkman_installer.sh
-    state: absent
-  when: not sdkman_init.stat.exists
+- name: Install SDKMAN
+  ansible.builtin.import_tasks: common/install-script.yaml
+  vars:
+    installer_name: SDKMAN
+    installer_url: https://get.sdkman.io
+    installer_creates: "{{ ansible_facts.env.HOME }}/.sdkman/bin/sdkman-init.sh"
+    installer_shell: "{{ sdkman_shell }}"
