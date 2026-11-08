@@ -1,0 +1,65 @@
+---
+# Automatic updates and reboots (Linux, desktop and server).
+#   Debian -> unattended-upgrades: daily updates (Ubuntu security + updates and
+#             the third-party repos this playbook adds), auto-reboot when needed
+#   macOS  -> not managed
+# Settings live in one file sorted after Ubuntu's 50unattended-upgrades, which
+# stays untouched.
+
+- name: "Install unattended-upgrades (Debian)"
+  become: true
+  ansible.builtin.apt:
+    name: unattended-upgrades
+    state: present
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - initial-setup
+    - auto-updates
+
+- name: "Configure automatic updates and reboots (Debian)"
+  become: true
+  ansible.builtin.copy:
+    dest: "{{ auto_updates.config_file }}"
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      // Managed by dev-environment (auto-updates.yaml).
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+      APT::Periodic::AutocleanInterval "7";
+
+      Unattended-Upgrade::Origins-Pattern {
+      {% for pattern in auto_updates.origins_patterns %}
+              "{{ pattern }}";
+      {% endfor %}
+      };
+
+      Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
+      Unattended-Upgrade::Remove-Unused-Dependencies "true";
+
+      // Reboot only when an update requires it (/var/run/reboot-required).
+      Unattended-Upgrade::Automatic-Reboot "true";
+      Unattended-Upgrade::Automatic-Reboot-WithUsers "true";
+      Unattended-Upgrade::Automatic-Reboot-Time "{{ auto_updates.reboot_time }}";
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - initial-setup
+    - auto-updates
+
+# apt's own timers drive the daily refresh and upgrade runs.
+- name: "Enable the apt daily timers (Debian)"
+  become: true
+  ansible.builtin.systemd_service:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+  loop:
+    - apt-daily.timer
+    - apt-daily-upgrade.timer
+  when:
+    - ansible_facts.os_family == "Debian"
+    - ansible_facts.service_mgr == "systemd"
+  tags:
+    - initial-setup
+    - auto-updates

@@ -323,3 +323,20 @@ tailscale_apt:
   suite: "{{ ansible_facts.distribution_release }}"
 tailscale_authkey: "{{ lookup('ansible.builtin.env', 'TS_AUTHKEY') }}"
 tailscale_up_args: ""   # extra `tailscale up` flags, e.g. "--ssh --advertise-tags=tag:server"
+
+# Automatic updates (Linux, desktop and server; regular install). Daily
+# unattended-upgrades, rebooting only when an update requires it, at
+# reboot_time (local), even with users logged in.
+auto_updates:
+  reboot_time: "04:00"
+  # Added to Ubuntu's default Allowed-Origins (security + ESM): regular Ubuntu
+  # updates, plus the third-party apt repos this playbook configures.
+  origins_patterns:
+    - "origin=Ubuntu,archive=${distro_codename}-updates"
+    - "origin=LP-PPA-ansible-ansible"   # Ansible PPA (setup.sh)
+    - "site=dl.google.com"              # Google Chrome (browser-testing)
+    - "site=cli.github.com"             # GitHub CLI
+    - "site=acli.atlassian.com"         # Atlassian CLI
+    - "site=packages.opentofu.org"      # OpenTofu
+    - "site=pkgs.tailscale.com"         # Tailscale (opt-in)
+  config_file: /etc/apt/apt.conf.d/52dev-env-auto-updates

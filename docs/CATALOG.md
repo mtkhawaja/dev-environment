@@ -168,6 +168,14 @@ Inside Docker, Chrome's sandbox needs namespaces that the default seccomp profil
 (Playwright already does) or run the container with `--security-opt seccomp=unconfined`. On a real Ubuntu host,
 Ubuntu's AppArmor profile for `/opt/google/chrome/chrome` lets the sandbox work as-is.
 
+## Automatic updates (Linux only)
+
+*(`auto-updates.yaml`)* — desktop and server; not managed on macOS.
+
+| Tool | What it is | Why it's useful |
+|------|------------|-----------------|
+| **unattended-upgrades** | Automatic apt updates | Daily: Ubuntu security + regular updates, plus the third-party repos this playbook adds (Chrome, GitHub CLI, Atlassian CLI, OpenTofu, Tailscale, Ansible PPA). Reboots automatically only when an update requires it, at 04:00 local time (`auto_updates.reboot_time`), even with users logged in. Unused kernels and dependencies are cleaned up. |
+
 ## SSH
 
 *(`ssh.yaml`; server: `ssh-server.yaml`)* — Linux only.

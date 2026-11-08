@@ -33,6 +33,7 @@ so installers can prompt for your password. Logs go to `~/.ansible-dev-env-boots
 | GUI apps (Ghostty, VLC, JetBrains Toolbox; AeroSpace and bloom on macOS) | ✅ | ✅ | — |
 | Desktop-only packages (`fonts-powerline`) | n/a | ✅ | — |
 | Headless browser testing (Google Chrome, fonts, `xvfb`) | — (not managed) | ✅ | ✅ |
+| Automatic updates + reboots when needed (04:00) | — (not managed) | ✅ | ✅ |
 | OpenSSH client | built in | ✅ | ✅ |
 | OpenSSH server, hardened (opt-in: `ssh-server.yaml`) | — (never) | opt-in | opt-in |
 
