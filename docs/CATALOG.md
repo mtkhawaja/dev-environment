@@ -127,6 +127,16 @@ is generated from the Ansible task files in `src/ansible/tasks/` — when you ad
 | **Go** | Go toolchain       | Compiler and tooling for Go development. Latest go.dev release on Debian (updated on re-run); Homebrew on macOS. |
 | **gopls**     | Go language server | LSP backend powering editor completion, diagnostics, and refactoring.     |
 
+## Desktop apps
+
+*(`apps.yaml`)* — skipped when `headless`.
+
+| Tool | What it is | Why it's useful |
+|------|------------|-----------------|
+| **Ghostty** | GPU-accelerated terminal | Fast native terminal; config comes from the dotfiles repo (`~/.config/ghostty/`). Homebrew cask on macOS; Ubuntu's archive on Debian. |
+| **VLC** | Media player | Plays nearly any audio/video format. Homebrew cask on macOS; apt on Debian. |
+| **bloom**, **AeroSpace** | macOS utilities | File manager and tiling window manager (macOS only). |
+
 ## Developer platform CLIs
 
 *(`github-cli.yaml`, `sonarqube-cli.yaml`, `acli.yaml`)*

@@ -1,7 +1,7 @@
 ---
-# Desktop GUI applications. bloom + AeroSpace are macOS-only (no Linux
-# equivalent in this dev-env); VLC is cross-platform (Homebrew Cask on macOS,
-# apt on Debian/WSL).
+# Desktop GUI applications (the whole file is skipped when headless; see
+# local.yaml). bloom + AeroSpace are macOS-only; VLC and Ghostty are
+# cross-platform (Homebrew Cask on macOS, apt on Debian/WSL).
 
 # Homebrew no longer auto-taps third-party taps (AeroSpace) from a qualified name.
 - name: "Add Homebrew taps for GUI apps (macOS)"
@@ -38,16 +38,20 @@
     - initial-setup
     - apps
 
+# --adopt: take over an identical app already in /Applications (e.g. installed
+# by hand) instead of failing on "already an App".
 - name: "Install GUI apps via Homebrew Cask (macOS)"
   community.general.homebrew_cask:
     name: "{{ apps.brew_casks }}"
     state: present
+    install_options:
+      - adopt
   when: ansible_facts.os_family == "Darwin"
   tags:
     - initial-setup
     - apps
 
-- name: "Install VLC via apt (Debian)"
+- name: "Install GUI apps via apt (Debian)"
   become: true
   ansible.builtin.apt:
     name: "{{ apps.apt_packages }}"

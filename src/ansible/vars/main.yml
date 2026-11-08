@@ -115,8 +115,9 @@ tools:
     - lua
     - shellcheck
 
-# Desktop GUI apps. bloom + AeroSpace are macOS-only (no Linux equivalent in
-# this dev-env); VLC is cross-platform (Homebrew Cask on macOS, apt on Debian).
+# Desktop GUI apps (skipped when headless). bloom + AeroSpace are macOS-only (no
+# Linux equivalent in this dev-env); VLC and Ghostty are cross-platform
+# (Homebrew Cask on macOS, apt on Debian — Ubuntu's archive packages Ghostty).
 apps:
   brew_taps:
     - nikitabobko/tap
@@ -124,8 +125,10 @@ apps:
     - bloom
     - nikitabobko/tap/aerospace
     - vlc
+    - ghostty
   apt_packages:
     - vlc
+    - ghostty
 
 # jdtls (Eclipse JDT Language Server, Java LSP). macOS: Homebrew formula.
 # Debian: no apt package, so install the Eclipse release tarball (arch-independent,
