@@ -311,3 +311,15 @@ ssh:
 # a key line or a URL such as https://github.com/<user>.keys. Optional if
 # ~/.ssh/authorized_keys already holds a key.
 ssh_authorized_keys: ""
+
+# Tailscale (Linux only, opt-in): never runs by default. Either run the
+# standalone `tailscale.yaml` playbook, or pass `-e tailscale=true` to local.yaml.
+# Joining the tailnet is automatic only when TS_AUTHKEY is set in the
+# environment; the key reaches `tailscale up` via a root-only temp file
+# (`--auth-key=file:`), never argv or logs. Otherwise run `sudo tailscale up`.
+tailscale: false
+tailscale_apt:
+  repo_base: "https://pkgs.tailscale.com/stable/{{ ansible_facts.distribution | lower }}"
+  suite: "{{ ansible_facts.distribution_release }}"
+tailscale_authkey: "{{ lookup('ansible.builtin.env', 'TS_AUTHKEY') }}"
+tailscale_up_args: ""   # extra `tailscale up` flags, e.g. "--ssh --advertise-tags=tag:server"

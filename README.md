@@ -93,6 +93,21 @@ In order, it:
    first start, then validates with `sshd -t`; on failure it stops and disables the server (fails closed),
 4. enables the socket-activated server (`ssh.socket`, port 22) and reloads `sshd` if it's running.
 
+### Optional: Tailscale (Linux)
+
+Not installed by default. Install it when a machine needs it, either standalone or as part of a normal run:
+
+```bash
+ansible-pull -U https://github.com/mtkhawaja/dev-environment.git -i localhost, -K tailscale.yaml   # standalone
+ansible-playbook -i localhost, -K tailscale.yaml                                                  # standalone, from a checkout
+ansible-playbook -i localhost, -K -e tailscale=true local.yaml                                     # with a normal run
+```
+
+It adds Tailscale's official apt repo, installs `tailscale`, and enables `tailscaled`. To join your tailnet
+automatically, export an auth key first (`export TS_AUTHKEY=tskey-auth-...`; it's read from the environment and never
+logged); otherwise run `sudo tailscale up` afterwards. Extra `tailscale up` flags go in
+`-e tailscale_up_args="--ssh --advertise-tags=tag:server"`.
+
 ### Without `setup.sh`
 
 With Ansible already installed, run the playbook from GitHub (`ansible-pull`) or from a checkout (`ansible-playbook`,

@@ -1,0 +1,23 @@
+---
+# Opt-in Tailscale install for Linux hosts. NOT run by default. Run it yourself:
+#
+#   ansible-playbook -i localhost, -K tailscale.yaml
+#   ansible-pull -U https://github.com/mtkhawaja/dev-environment.git -i localhost, -K tailscale.yaml
+#
+# Set TS_AUTHKEY in the environment to join the tailnet automatically;
+# otherwise run `sudo tailscale up` afterwards. (Or include it in a normal run
+# with `-e tailscale=true`.)
+- name: Install Tailscale
+  hosts: localhost
+  connection: local
+  vars_files:
+    - src/ansible/vars/main.yml
+  tasks:
+    - name: "Only Linux hosts are supported"
+      ansible.builtin.assert:
+        that: ansible_facts.os_family == "Debian"
+        fail_msg: "tailscale.yaml is for Linux (Debian/Ubuntu) hosts only."
+        quiet: true
+
+    - name: Tailscale
+      ansible.builtin.import_tasks: src/ansible/tasks/tailscale.yaml

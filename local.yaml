@@ -58,3 +58,6 @@
       when: not (headless | bool)
     - name: Claude Code
       ansible.builtin.import_tasks: src/ansible/tasks/claude-code.yaml
+    - name: Tailscale (opt-in, -e tailscale=true)
+      ansible.builtin.import_tasks: src/ansible/tasks/tailscale.yaml
+      when: tailscale | bool

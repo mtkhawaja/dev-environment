@@ -177,6 +177,14 @@ Ubuntu's AppArmor profile for `/opt/google/chrome/chrome` lets the sandbox work 
 | **OpenSSH client** (`openssh-client`) | `ssh`, `scp`, `ssh-keygen` | Regular install on Linux; minimal Ubuntu images ship without it. Built into macOS. |
 | **OpenSSH server** (`openssh-server`, opt-in) | `sshd` | Remote logins, installed only by `ssh-server.yaml` and always hardened: key-only, no root, socket-activated on port 22. It refuses to install without an authorized key. Never on macOS (Remote Login stays off). |
 
+## Tailscale (opt-in, Linux only)
+
+*(`tailscale.yaml`, `src/ansible/tasks/tailscale.yaml`)* — never installed by default.
+
+| Tool | What it is | Why it's useful |
+|------|------------|-----------------|
+| **Tailscale** | WireGuard-based mesh VPN | Reach servers privately from anywhere without opening ports. Official apt repo; `tailscaled` enabled. Run `tailscale.yaml` (or `-e tailscale=true`); joins automatically when `TS_AUTHKEY` is set, else `sudo tailscale up`. |
+
 ## Secrets & signing
 
 *(`bitwarden-cli.yaml`, `pre_tasks.yaml`)*
