@@ -117,7 +117,8 @@ tools:
 
 # Desktop GUI apps (skipped when headless). bloom + AeroSpace are macOS-only (no
 # Linux equivalent in this dev-env); VLC and Ghostty are cross-platform
-# (Homebrew Cask on macOS, apt on Debian — Ubuntu's archive packages Ghostty).
+# (Homebrew Cask on macOS, apt on Debian — Ubuntu's archive packages Ghostty);
+# JetBrains Toolbox is a cask on macOS and a pinned tarball on Debian.
 apps:
   brew_taps:
     - nikitabobko/tap
@@ -129,6 +130,15 @@ apps:
   apt_packages:
     - vlc
     - ghostty
+  # JetBrains Toolbox on macOS: cask, installed only when the app is absent
+  # (adopting an existing copy can need sudo; Toolbox self-updates anyway).
+  jetbrains_toolbox_cask: jetbrains-toolbox
+  jetbrains_toolbox_app: "/Applications/JetBrains Toolbox.app"
+  # JetBrains Toolbox on Debian: no apt/.deb; pinned upstream tarball (bundles
+  # its own JRE) per arch. It self-installs and self-updates on first launch.
+  jetbrains_toolbox_version: "3.9.1.89198"
+  jetbrains_toolbox_asset: "jetbrains-toolbox-{{ apps.jetbrains_toolbox_version }}{{ '-arm64' if deb_arch == 'arm64' else '' }}.tar.gz"
+  jetbrains_toolbox_url: "https://download.jetbrains.com/toolbox/{{ apps.jetbrains_toolbox_asset }}"
 
 # jdtls (Eclipse JDT Language Server, Java LSP). macOS: Homebrew formula.
 # Debian: no apt package, so install the Eclipse release tarball (arch-independent,

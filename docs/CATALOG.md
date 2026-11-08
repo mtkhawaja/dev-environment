@@ -134,6 +134,7 @@ is generated from the Ansible task files in `src/ansible/tasks/` — when you ad
 | Tool | What it is | Why it's useful |
 |------|------------|-----------------|
 | **Ghostty** | GPU-accelerated terminal | Fast native terminal; config comes from the dotfiles repo (`~/.config/ghostty/`). Homebrew cask on macOS; Ubuntu's archive on Debian. |
+| **JetBrains Toolbox** | JetBrains IDE manager | Installs and updates IntelliJ, PyCharm, etc. Homebrew cask on macOS (skipped if the app is already installed); pinned tarball on Debian (x86_64/arm64), self-updating after first launch. Sign-in and IDE choice stay manual. |
 | **VLC** | Media player | Plays nearly any audio/video format. Homebrew cask on macOS; apt on Debian. |
 | **bloom**, **AeroSpace** | macOS utilities | File manager and tiling window manager (macOS only). |
 
