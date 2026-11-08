@@ -47,6 +47,8 @@
       ansible.builtin.import_tasks: src/ansible/tasks/sonarqube-cli.yaml
     - name: Atlassian CLI
       ansible.builtin.import_tasks: src/ansible/tasks/acli.yaml
+    - name: Browser testing (Linux only)
+      ansible.builtin.import_tasks: src/ansible/tasks/browser-testing.yaml
     - name: Modern CLI tools
       ansible.builtin.import_tasks: src/ansible/tasks/modern-cli.yaml
     - name: GUI apps

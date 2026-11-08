@@ -251,3 +251,18 @@ acli:
     - atlassian/acli/acli
   apt_repo_uri: "https://acli.atlassian.com/linux/deb"
   apt_repo_key_url: "https://acli.atlassian.com/gpg/public-key.asc"
+
+# Headless browser testing (Playwright / Selenium, Chrome-based) on Linux servers.
+# Linux ONLY by design: browsers on macOS are deliberately not managed here,
+# so there is no Darwin branch.
+# Google Chrome stable (amd64/arm64) gives Selenium a system browser and pulls
+# in the shared libraries Chromium needs; projects then only run
+# `playwright install` (no sudo / --with-deps).
+browser_testing:
+  chrome_apt_repo_uri: "https://dl.google.com/linux/chrome/deb/"
+  chrome_apt_repo_key_url: "https://dl.google.com/linux/linux_signing_key.pub"
+  apt_packages:
+    - google-chrome-stable
+    - fonts-liberation
+    - fonts-noto-color-emoji
+    - xvfb            # only for tests that must run headed: xvfb-run <cmd>

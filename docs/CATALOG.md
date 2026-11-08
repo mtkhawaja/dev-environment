@@ -137,6 +137,23 @@ is generated from the Ansible task files in `src/ansible/tasks/` — when you ad
 | **SonarQube CLI** (`sonar`) | SonarQube in the terminal | Code-quality and security analysis from scripts and agents. Homebrew cask on macOS (Apple Silicon only); pinned binary on Debian (amd64/arm64). |
 | **Atlassian CLI** (`acli`) | Jira / Confluence CLI | Script Jira and Confluence work from the shell. Atlassian's Homebrew tap on macOS; Atlassian's apt repo on Debian. |
 
+## Headless browser testing (Linux only)
+
+*(`browser-testing.yaml`)* — Debian/Ubuntu only; intentionally not managed on macOS.
+
+Lets Chrome-based Playwright and Selenium tests run on a server with no desktop. Projects only need the
+per-project, sudo-free `playwright install`; Selenium Manager fetches a matching chromedriver for the system Chrome.
+
+| Tool | What it is | Why it's useful |
+|------|------------|-----------------|
+| **Google Chrome** (`google-chrome-stable`) | Browser (amd64/arm64) | System Chrome for Selenium / Playwright `channel: 'chrome'`, and it pulls in the shared libraries Playwright's bundled Chromium needs. Installed from Google's apt repo, which the package then manages itself. |
+| **fonts-liberation**, **fonts-noto-color-emoji** | Fonts | Correct text and emoji rendering in screenshots and visual tests. |
+| **xvfb** | Virtual X display | Only for tests that must run headed: `xvfb-run -a <cmd>`. |
+
+Inside Docker, Chrome's sandbox needs namespaces that the default seccomp profile blocks: use `--no-sandbox` there
+(Playwright already does) or run the container with `--security-opt seccomp=unconfined`. On a real Ubuntu host,
+Ubuntu's AppArmor profile for `/opt/google/chrome/chrome` lets the sandbox work as-is.
+
 ## Secrets & signing
 
 *(`bitwarden-cli.yaml`, `pre_tasks.yaml`)*

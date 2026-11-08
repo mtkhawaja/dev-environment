@@ -1,0 +1,74 @@
+---
+# Headless browser testing support (Playwright / Selenium with Chrome).
+#   Debian -> Google Chrome stable (Google's apt repo) + fonts + xvfb
+#   macOS  -> intentionally not managed (see browser_testing in vars/main.yml)
+
+- name: "Ensure python3-debian is present for deb822_repository (Debian)"
+  become: true
+  ansible.builtin.apt:
+    name: python3-debian
+    state: present
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - initial-setup
+    - browser-testing
+
+# The Chrome package manages /etc/apt/sources.list.d/google-chrome.sources itself
+# (rewritten with Google's own keyring on every install/upgrade). So the
+# playbook only bootstraps the repo when that file is absent, then leaves it to
+# Chrome; writing it on every run would fight the package's maintainer script.
+- name: "Check for Chrome's apt source (Debian)"
+  ansible.builtin.stat:
+    path: /etc/apt/sources.list.d/google-chrome.sources
+  register: chrome_sources
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - initial-setup
+    - browser-testing
+
+- name: "Bootstrap Google Chrome apt repository (Debian)"
+  become: true
+  ansible.builtin.deb822_repository:
+    name: google-chrome
+    types: deb
+    uris: "{{ browser_testing.chrome_apt_repo_uri }}"
+    suites: stable
+    components: main
+    signed_by: "{{ browser_testing.chrome_apt_repo_key_url }}"
+  when: ansible_facts.os_family == "Debian" and not chrome_sources.stat.exists
+  tags:
+    - initial-setup
+    - browser-testing
+
+- name: "Install Chrome, fonts, and xvfb (Debian)"
+  become: true
+  ansible.builtin.apt:
+    name: "{{ browser_testing.apt_packages }}"
+    state: present
+    update_cache: true
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - initial-setup
+    - browser-testing
+
+# After install Chrome's own source points at its own keyring, leaving the
+# bootstrap key unused; remove it only once nothing references it.
+- name: "Check whether the bootstrap Chrome key is still referenced (Debian)"
+  ansible.builtin.command: grep -q keyrings/google-chrome.asc /etc/apt/sources.list.d/google-chrome.sources
+  register: chrome_bootstrap_key_used
+  changed_when: false
+  failed_when: chrome_bootstrap_key_used.rc > 1
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - initial-setup
+    - browser-testing
+
+- name: "Remove the unused bootstrap Chrome key (Debian)"
+  become: true
+  ansible.builtin.file:
+    path: /etc/apt/keyrings/google-chrome.asc
+    state: absent
+  when: ansible_facts.os_family == "Debian" and chrome_bootstrap_key_used.rc == 1
+  tags:
+    - initial-setup
+    - browser-testing
