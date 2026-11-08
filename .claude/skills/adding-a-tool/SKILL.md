@@ -89,6 +89,7 @@ to that — do not pin to whatever version a stale example happens to show. Pins
 | Tag everything                                                    | Enables `--tags <area>` scoped runs and Docker `TAGS`.                       |
 | Linux release URLs use `linux_arch` / `deb_arch`                  | Hosts may be x86_64 or arm64; never hardcode one arch.                       |
 | `ansible-lint` passes                                             | Blocking in CI; FQCNs; install scripts via `common/install-script.yaml`.     |
+| Third-party Homebrew taps: `homebrew_tap` + `brew trust`            | Homebrew no longer auto-taps or loads untrusted tap formulae (see `acli.yaml`). |
 | New collections → `requirements.yml`                              | `community.general` (Homebrew module) is installed from there by `setup.sh`. |
 
 ## Verification

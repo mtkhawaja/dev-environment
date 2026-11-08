@@ -41,6 +41,12 @@
       ansible.builtin.import_tasks: src/ansible/tasks/tflint.yaml
     - name: AWS CLI
       ansible.builtin.import_tasks: src/ansible/tasks/awscli.yaml
+    - name: GitHub CLI
+      ansible.builtin.import_tasks: src/ansible/tasks/github-cli.yaml
+    - name: SonarQube CLI
+      ansible.builtin.import_tasks: src/ansible/tasks/sonarqube-cli.yaml
+    - name: Atlassian CLI
+      ansible.builtin.import_tasks: src/ansible/tasks/acli.yaml
     - name: Modern CLI tools
       ansible.builtin.import_tasks: src/ansible/tasks/modern-cli.yaml
     - name: GUI apps

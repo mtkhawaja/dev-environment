@@ -1,0 +1,35 @@
+---
+# SonarQube CLI (`sonar`).
+#   macOS  -> Homebrew cask (Apple Silicon only)
+#   Debian -> pinned binary from SonarSource's CDN into ~/.local/bin (amd64 or arm64)
+
+- name: "Install SonarQube CLI (macOS)"
+  community.general.homebrew_cask:
+    name: "{{ sonarqube_cli.brew_casks }}"
+    state: present
+  when: ansible_facts.os_family == "Darwin"
+  tags:
+    - initial-setup
+    - sonarqube-cli
+
+- name: "Ensure ~/.local/bin exists (Debian)"
+  ansible.builtin.file:
+    path: "{{ ansible_facts.env.HOME }}/.local/bin"
+    state: directory
+    mode: '0755'
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - initial-setup
+    - sonarqube-cli
+
+# get_url skips the download when the binary already exists (idempotent);
+# `sonar` can self-update after that.
+- name: "Install SonarQube CLI binary (Debian)"
+  ansible.builtin.get_url:
+    url: "{{ sonarqube_cli.linux_url }}"
+    dest: "{{ ansible_facts.env.HOME }}/.local/bin/sonar"
+    mode: '0755'
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - initial-setup
+    - sonarqube-cli

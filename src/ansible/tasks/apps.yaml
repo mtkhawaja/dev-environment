@@ -3,6 +3,41 @@
 # equivalent in this dev-env); VLC is cross-platform (Homebrew Cask on macOS,
 # apt on Debian/WSL).
 
+# Homebrew no longer auto-taps third-party taps (AeroSpace) from a qualified name.
+- name: "Add Homebrew taps for GUI apps (macOS)"
+  community.general.homebrew_tap:
+    name: "{{ apps.brew_taps }}"
+    state: present
+  when: ansible_facts.os_family == "Darwin"
+  tags:
+    - initial-setup
+    - apps
+
+# Homebrew only loads third-party tap casks that were explicitly trusted.
+- name: "List trusted Homebrew entries (macOS)"
+  ansible.builtin.command: brew trust --json=v1
+  environment:
+    PATH: "/opt/homebrew/bin:/usr/local/bin:{{ ansible_facts.env.PATH }}"
+  register: apps_brew_trust
+  changed_when: false
+  when: ansible_facts.os_family == "Darwin"
+  tags:
+    - initial-setup
+    - apps
+
+- name: "Trust third-party tap casks (macOS)"
+  ansible.builtin.command: "brew trust --cask {{ item }}"
+  environment:
+    PATH: "/opt/homebrew/bin:/usr/local/bin:{{ ansible_facts.env.PATH }}"
+  loop: "{{ apps.brew_casks | select('search', '/') | list }}"
+  changed_when: true
+  when:
+    - ansible_facts.os_family == "Darwin"
+    - item not in (apps_brew_trust.stdout | from_json).casks
+  tags:
+    - initial-setup
+    - apps
+
 - name: "Install GUI apps via Homebrew Cask (macOS)"
   community.general.homebrew_cask:
     name: "{{ apps.brew_casks }}"

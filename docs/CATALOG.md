@@ -127,6 +127,16 @@ is generated from the Ansible task files in `src/ansible/tasks/` — when you ad
 | **Go** | Go toolchain       | Compiler and tooling for Go development. Latest go.dev release on Debian (updated on re-run); Homebrew on macOS. |
 | **gopls**     | Go language server | LSP backend powering editor completion, diagnostics, and refactoring.     |
 
+## Developer platform CLIs
+
+*(`github-cli.yaml`, `sonarqube-cli.yaml`, `acli.yaml`)*
+
+| Tool | What it is | Why it's useful |
+|------|------------|-----------------|
+| **GitHub CLI** (`gh`) | GitHub from the terminal | PRs, issues, Actions runs, releases and API calls without the browser. Homebrew on macOS; GitHub's official apt repo on Debian (Ubuntu's package lags by years). |
+| **SonarQube CLI** (`sonar`) | SonarQube in the terminal | Code-quality and security analysis from scripts and agents. Homebrew cask on macOS (Apple Silicon only); pinned binary on Debian (amd64/arm64). |
+| **Atlassian CLI** (`acli`) | Jira / Confluence CLI | Script Jira and Confluence work from the shell. Atlassian's Homebrew tap on macOS; Atlassian's apt repo on Debian. |
+
 ## Secrets & signing
 
 *(`bitwarden-cli.yaml`, `pre_tasks.yaml`)*

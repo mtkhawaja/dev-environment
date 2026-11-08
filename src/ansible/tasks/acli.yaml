@@ -1,0 +1,83 @@
+---
+# Atlassian CLI (acli).
+#   macOS  -> Atlassian's Homebrew tap (atlassian/acli)
+#   Debian -> Atlassian's apt repo (deb822 .sources), `acli` package
+
+# Homebrew no longer auto-taps third-party taps from a qualified name.
+- name: "Tap Atlassian's Homebrew tap (macOS)"
+  community.general.homebrew_tap:
+    name: "{{ acli.brew_tap }}"
+    state: present
+  when: ansible_facts.os_family == "Darwin"
+  tags:
+    - initial-setup
+    - acli
+
+# Homebrew only loads third-party tap formulae that were explicitly trusted.
+- name: "List trusted Homebrew entries (macOS)"
+  ansible.builtin.command: brew trust --json=v1
+  environment:
+    PATH: "/opt/homebrew/bin:/usr/local/bin:{{ ansible_facts.env.PATH }}"
+  register: acli_brew_trust
+  changed_when: false
+  when: ansible_facts.os_family == "Darwin"
+  tags:
+    - initial-setup
+    - acli
+
+- name: "Trust the Atlassian CLI formula (macOS)"
+  ansible.builtin.command: "brew trust --formula {{ item }}"
+  environment:
+    PATH: "/opt/homebrew/bin:/usr/local/bin:{{ ansible_facts.env.PATH }}"
+  loop: "{{ acli.brew_formulae }}"
+  changed_when: true
+  when:
+    - ansible_facts.os_family == "Darwin"
+    - item not in (acli_brew_trust.stdout | from_json).formulae
+  tags:
+    - initial-setup
+    - acli
+
+- name: "Install Atlassian CLI (macOS)"
+  community.general.homebrew:
+    name: "{{ acli.brew_formulae }}"
+    state: present
+  when: ansible_facts.os_family == "Darwin"
+  tags:
+    - initial-setup
+    - acli
+
+- name: "Ensure python3-debian is present for deb822_repository (Debian)"
+  become: true
+  ansible.builtin.apt:
+    name: python3-debian
+    state: present
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - initial-setup
+    - acli
+
+- name: "Add Atlassian CLI apt repository (Debian)"
+  become: true
+  ansible.builtin.deb822_repository:
+    name: acli
+    types: deb
+    uris: "{{ acli.apt_repo_uri }}"
+    suites: stable
+    components: main
+    signed_by: "{{ acli.apt_repo_key_url }}"
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - initial-setup
+    - acli
+
+- name: "Install Atlassian CLI (Debian)"
+  become: true
+  ansible.builtin.apt:
+    name: acli
+    state: present
+    update_cache: true
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - initial-setup
+    - acli

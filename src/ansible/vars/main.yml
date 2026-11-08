@@ -111,6 +111,8 @@ tools:
 # Desktop GUI apps. bloom + AeroSpace are macOS-only (no Linux equivalent in
 # this dev-env); VLC is cross-platform (Homebrew Cask on macOS, apt on Debian).
 apps:
+  brew_taps:
+    - nikitabobko/tap
   brew_casks:
     - bloom
     - nikitabobko/tap/aerospace
@@ -222,3 +224,30 @@ tflint:
   version: "0.63.1"
   url: >-
     https://github.com/terraform-linters/tflint/releases/download/v{{ tflint.version }}/tflint_{{ ansible_facts.system | lower }}_{{ deb_arch }}.zip
+
+# GitHub CLI (gh). macOS: Homebrew. Debian: GitHub's official apt repo —
+# Ubuntu's own `gh` package (2.46 on Resolute) lags upstream by years.
+github_cli:
+  brew_formulae:
+    - gh
+  apt_repo_uri: "https://cli.github.com/packages"
+  apt_repo_key_url: "https://cli.github.com/packages/githubcli-archive-keyring.gpg"
+
+# SonarQube CLI (`sonar`). macOS: Homebrew cask (Apple Silicon only). Debian: no
+# apt/.deb; single binary from SonarSource's CDN into ~/.local/bin. (Their
+# install script would append a PATH line to the stowed ~/.zshrc, so it's not used.)
+sonarqube_cli:
+  brew_casks:
+    - sonarqube-cli
+  version: "1.11.0.16877"
+  linux_platform: "linux-{{ 'arm64' if deb_arch == 'arm64' else 'x86-64' }}"
+  linux_base_url: "https://binaries.sonarsource.com/Distribution/sonarqube-cli/{{ sonarqube_cli.version }}/linux"
+  linux_url: "{{ sonarqube_cli.linux_base_url }}/sonarqube-cli-{{ sonarqube_cli.version }}-{{ sonarqube_cli.linux_platform }}.bin"
+
+# Atlassian CLI (acli). macOS: Atlassian's Homebrew tap. Debian: Atlassian's apt repo.
+acli:
+  brew_tap: atlassian/acli
+  brew_formulae:
+    - atlassian/acli/acli
+  apt_repo_uri: "https://acli.atlassian.com/linux/deb"
+  apt_repo_key_url: "https://acli.atlassian.com/gpg/public-key.asc"
