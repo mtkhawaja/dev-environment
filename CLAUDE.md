@@ -14,7 +14,7 @@ Three target environments (details in README "Set up a machine"); `setup.sh` alw
 
 ```bash
 bash setup.sh                              # macOS (installs Homebrew if missing)
-bash setup.sh                              # Linux with a desktop (prompts for sudo, then Ansible's BECOME password)
+bash setup.sh                              # Linux with a desktop (asks for the sudo password once)
 HEADLESS=true bash setup.sh                # Linux server: skips GUI apps + desktop-only packages
 ```
 
@@ -55,7 +55,7 @@ docker build --build-arg TAGS="-e headless=true" -t mtkhawaja/dev-env:headless .
 - **ansible-lint must pass** (`ansible-lint`, production profile; blocking in CI). Use FQCNs, `true`/`false`, and run upstream install scripts through `src/ansible/tasks/common/install-script.yaml` (`import_tasks` + vars) rather than `curl | sh`.
 - **`headless` flag** (`-e headless=true`, or `HEADLESS=true ./setup.sh`) is for desktop-less servers: GUI apps and desktop-only packages are skipped. New GUI/desktop-only installs must be guarded with `not (headless | bool)` (always `| bool`: extra vars are strings).
 - **Third-party apt repos must be added to `auto_updates.origins_patterns`** (usually `site=<repo host>`) or unattended-upgrades won't update their packages.
-- **sudo on Ubuntu 26.04 is sudo-rs.** ansible-core < 2.22 can't parse its password prompt, so `ansible_become_exe` (vars/main.yml) falls back to the bundled classic `/usr/bin/sudo.ws` there. Ansible can't reuse cached sudo credentials, so password-protected sudo needs `-K` (`setup.sh` adds `--ask-become-pass` unless sudo is passwordless).
+- **sudo on Ubuntu 26.04 is sudo-rs.** ansible-core < 2.22 can't parse its password prompt, so `ansible_become_exe` (vars/main.yml) falls back to the bundled classic `/usr/bin/sudo.ws` there. Ansible can't reuse cached sudo credentials, so password-protected sudo needs `-K`; `setup.sh` instead asks once and passes the password via `--become-password-file` (0600 file in a private temp dir, removed on exit) unless sudo is passwordless.
 - **Use `systemd_running`** (not `ansible_facts.service_mgr`, which says "systemd" in plain containers) to guard tasks that start/reload units.
 - **Per-OS config is centralized** in `src/ansible/vars/main.yml` — the macOS/Debian package + release-binary maps and download URLs. Add new cross-platform package data here rather than inlining it in tasks.
 - **Tool install patterns**, in rough order of preference: native package manager (`apt` / `community.general.homebrew`) → upstream `.deb` (yazi on Debian) → release tarball/zip via `unarchive` into `~/.local/bin` (already on PATH). Prefer apt even when it lags upstream a little. Release archives need per-asset `extra_opts` to normalize layout (`--strip-components=1`, `-j`); build URLs with `linux_arch`/`deb_arch` so arm64 works.

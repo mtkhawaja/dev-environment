@@ -37,10 +37,41 @@ install_ansible_macos() {
   brew install ansible || { log "ERROR" "Failed to install Ansible via Homebrew"; exit 1; }
 }
 
+# Ansible can't reuse sudo credentials cached in this shell (Ubuntu 26.04's
+# sudo-rs keeps them per terminal session), so ask for the sudo password ONCE and
+# use it twice: `sudo -S -v` caches it for this script's own sudo calls, and a
+# 0600 file in a private temp dir hands it to Ansible (--become-password-file,
+# never on a command line). The dir is removed when the script exits.
+# `sudo -k -n true` ignores cached credentials, so it only succeeds for NOPASSWD.
+BECOME_ARGS=()
+BECOME_PASS_DIR=""
+cleanup_become_password() {
+  if [[ -n "$BECOME_PASS_DIR" ]]; then rm -rf "$BECOME_PASS_DIR"; fi
+}
+trap cleanup_become_password EXIT
+
+acquire_sudo_password() {
+  local password attempt
+  for attempt in 1 2 3; do
+    read -rsp "[sudo] password for ${USER}: " password </dev/tty
+    echo >/dev/tty
+    if printf '%s\n' "$password" | sudo -S -p '' -v 2>/dev/null; then
+      BECOME_PASS_DIR="$(mktemp -d)"
+      chmod 700 "$BECOME_PASS_DIR"
+      (umask 077 && printf '%s' "$password" >"$BECOME_PASS_DIR/become")
+      BECOME_ARGS=(--become-password-file "$BECOME_PASS_DIR/become")
+      return 0
+    fi
+    log "WARN" "Incorrect sudo password (attempt ${attempt}/3)"
+  done
+  log "ERROR" "This script needs sudo privileges on Linux"
+  exit 1
+}
+
 install_ansible_linux() {
-  if [[ $EUID -ne 0 ]]; then
-    log "INFO" "Checking sudo access (you may be asked for your password)"
-    sudo -v || { log "ERROR" "This script needs sudo privileges on Linux"; exit 1; }
+  if [[ $EUID -ne 0 ]] && ! sudo -k -n true 2>/dev/null; then
+    log "INFO" "sudo needs a password; it is asked for once and reused for Ansible"
+    acquire_sudo_password
   fi
   log "INFO" "Updating package lists"
   sudo apt update || { log "ERROR" "Failed to update package lists"; exit 1; }
@@ -73,16 +104,6 @@ if [[ -f "${SCRIPT_DIR}/requirements.yml" ]]; then
 else
   ansible-galaxy collection install community.general \
     || { log "ERROR" "Failed to install community.general"; exit 1; }
-fi
-
-# Ansible can't reuse sudo credentials cached in this shell (Ubuntu 26.04's
-# sudo-rs keeps them per terminal session), so unless sudo is passwordless, let
-# Ansible ask for the password once and pass it to each privileged task.
-# `sudo -k -n` ignores any cached credentials, so it only succeeds for NOPASSWD.
-BECOME_ARGS=()
-if [[ "$OS" == "Linux" && $EUID -ne 0 ]] && ! sudo -k -n true 2>/dev/null; then
-  log "INFO" "sudo needs a password: Ansible will prompt for it once (BECOME password)"
-  BECOME_ARGS=(--ask-become-pass)
 fi
 
 # HEADLESS=true (server without a desktop) skips GUI apps and desktop-only packages.

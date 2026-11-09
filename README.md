@@ -55,9 +55,8 @@ curl -fsSL https://raw.githubusercontent.com/mtkhawaja/dev-environment/main/setu
 curl -fsSL https://raw.githubusercontent.com/mtkhawaja/dev-environment/main/setup.sh -o setup.sh && bash setup.sh
 ```
 
-- Needs sudo. With a password-protected sudo you're asked for it twice: once by `setup.sh` (to install Ansible), then
-  once more as Ansible's `BECOME password` (Ansible can't reuse sudo's cached credentials). Passwordless sudo skips
-  both prompts. Works with Ubuntu 26.04's default sudo-rs (ansible-core older than 2.22 falls back to the classic
+- Needs sudo. With a password-protected sudo, `setup.sh` asks for it once and reuses it for Ansible (handed over via a
+  private temp file, never on the command line, and deleted on exit). Passwordless sudo skips the prompt. Works with Ubuntu 26.04's default sudo-rs (ansible-core older than 2.22 falls back to the classic
   `sudo.ws` that ships alongside it, since it can't parse sudo-rs's password prompt).
 - Installs the CLI tooling plus the GUI apps (Ghostty, VLC, JetBrains Toolbox), `xclip`, Powerline fonts, and Google
   Chrome for browser tests. Works on x86_64 and arm64.
