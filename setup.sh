@@ -38,9 +38,9 @@ install_ansible_macos() {
 }
 
 install_ansible_linux() {
-  if [[ $EUID -ne 0 ]] && ! sudo -n true 2>/dev/null; then
-    log "ERROR" "This script must be run with sudo privileges on Linux"
-    exit 1
+  if [[ $EUID -ne 0 ]]; then
+    log "INFO" "Checking sudo access (you may be asked for your password)"
+    sudo -v || { log "ERROR" "This script needs sudo privileges on Linux"; exit 1; }
   fi
   log "INFO" "Updating package lists"
   sudo apt update || { log "ERROR" "Failed to update package lists"; exit 1; }
@@ -75,6 +75,16 @@ else
     || { log "ERROR" "Failed to install community.general"; exit 1; }
 fi
 
+# Ansible can't reuse sudo credentials cached in this shell (Ubuntu 26.04's
+# sudo-rs keeps them per terminal session), so unless sudo is passwordless, let
+# Ansible ask for the password once and pass it to each privileged task.
+# `sudo -k -n` ignores any cached credentials, so it only succeeds for NOPASSWD.
+BECOME_ARGS=()
+if [[ "$OS" == "Linux" && $EUID -ne 0 ]] && ! sudo -k -n true 2>/dev/null; then
+  log "INFO" "sudo needs a password: Ansible will prompt for it once (BECOME password)"
+  BECOME_ARGS=(--ask-become-pass)
+fi
+
 # HEADLESS=true (server without a desktop) skips GUI apps and desktop-only packages.
 EXTRA_VARS=()
 if [[ -n "${HEADLESS:-}" ]]; then
@@ -83,7 +93,7 @@ if [[ -n "${HEADLESS:-}" ]]; then
 fi
 
 log "INFO" "Running ansible-pull to configure the system"
-ansible-pull -U "$REPO_URL" -i localhost, "${EXTRA_VARS[@]}" local.yaml || {
+ansible-pull -U "$REPO_URL" -i localhost, "${BECOME_ARGS[@]}" "${EXTRA_VARS[@]}" local.yaml || {
   log "ERROR" "ansible-pull failed"
   exit 1
 }

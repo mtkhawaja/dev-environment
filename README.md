@@ -52,17 +52,20 @@ curl -fsSL https://raw.githubusercontent.com/mtkhawaja/dev-environment/main/setu
 ### Linux with a desktop (Ubuntu 26.04)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/mtkhawaja/dev-environment/main/setup.sh -o setup.sh && sudo -v && bash setup.sh
+curl -fsSL https://raw.githubusercontent.com/mtkhawaja/dev-environment/main/setup.sh -o setup.sh && bash setup.sh
 ```
 
-- Needs sudo. `setup.sh` checks with `sudo -n true`, so authenticate first (`sudo -v`) or use passwordless sudo.
+- Needs sudo. With a password-protected sudo you're asked for it twice: once by `setup.sh` (to install Ansible), then
+  once more as Ansible's `BECOME password` (Ansible can't reuse sudo's cached credentials). Passwordless sudo skips
+  both prompts. Works with Ubuntu 26.04's default sudo-rs (ansible-core older than 2.22 falls back to the classic
+  `sudo.ws` that ships alongside it, since it can't parse sudo-rs's password prompt).
 - Installs the CLI tooling plus the GUI apps (Ghostty, VLC, JetBrains Toolbox), `xclip`, Powerline fonts, and Google
   Chrome for browser tests. Works on x86_64 and arm64.
 
 ### Linux server / headless (Ubuntu 26.04, no desktop)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/mtkhawaja/dev-environment/main/setup.sh -o setup.sh && sudo -v && HEADLESS=true bash setup.sh
+curl -fsSL https://raw.githubusercontent.com/mtkhawaja/dev-environment/main/setup.sh -o setup.sh && HEADLESS=true bash setup.sh
 ```
 
 - `HEADLESS=true` skips GUI apps (Ghostty, VLC, JetBrains Toolbox) and desktop-only packages (`fonts-powerline`), and

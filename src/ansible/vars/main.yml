@@ -9,6 +9,15 @@
 # the macOS CI job). They use GitHub web redirects, the npm registry, or vendor
 # indexes instead, and only run when the tool isn't installed yet.
 
+# Ubuntu 26.04's default sudo is sudo-rs, which rewrites sudo's custom -p prompt
+# ("[sudo: <prompt>] Password:"). ansible-core >= 2.22 recognizes that; older
+# releases (e.g. 2.21 from the Ansible PPA) time out waiting for their become
+# prompt with password-protected sudo. For those, use classic sudo, which still
+# ships as /usr/bin/sudo.ws; otherwise use the system sudo (sudo-rs). Controller
+# == target here, so the file test checks the managed host.
+ansible_become_exe: >-
+  {{ '/usr/bin/sudo.ws' if (ansible_version.full is version('2.22.0', '<') and '/usr/bin/sudo.ws' is file) else 'sudo' }}
+
 # Server installs without a desktop: `-e headless=true` (or HEADLESS=true for
 # setup.sh) skips GUI apps and desktop-only packages. Always test it with
 # `headless | bool` — extra vars arrive as strings, so "false" is truthy.
