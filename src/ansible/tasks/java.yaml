@@ -54,17 +54,17 @@
     - java
     - jdtls
   block:
-    - name: "Look up jdtls release tags (Debian)"
+    - name: "Read the jdtls milestones index (Debian)"
       ansible.builtin.uri:
-        url: "{{ jdtls.tags_api }}"
+        url: "{{ jdtls.milestones_url }}/"
         return_content: true
-      register: jdtls_tags
+      register: jdtls_index
 
-    - name: "Resolve the newest jdtls release (Debian)"
+    - name: "Resolve the newest jdtls milestone (Debian)"
       ansible.builtin.set_fact:
         jdtls_version: >-
-          {{ jdtls_tags.json | map(attribute='name') | select('match', '^v[0-9]+[.][0-9]+[.][0-9]+$')
-             | map('regex_replace', '^v', '') | community.general.version_sort | last }}
+          {{ jdtls_index.content | regex_findall('milestones/([0-9]+[.][0-9]+[.][0-9]+)')
+             | unique | community.general.version_sort | last }}
 
     - name: "Find that milestone's tarball (Debian)"
       ansible.builtin.uri:

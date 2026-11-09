@@ -1,8 +1,9 @@
 ---
 # Node.js via nvm (cross-platform: macOS + Debian/WSL).
 
-# nvm's installer is versioned, so look up the latest release tag first (only
-# when nvm isn't installed yet).
+# nvm's installer is versioned, so read the latest release tag from GitHub's
+# web redirect first (not the rate-limited REST API; only when nvm isn't
+# installed yet).
 - name: "Check for an existing nvm install"
   ansible.builtin.stat:
     path: "{{ ansible_facts.env.HOME }}/.nvm/nvm.sh"
@@ -13,8 +14,9 @@
 
 - name: "Look up the latest nvm release"
   ansible.builtin.uri:
-    url: "{{ node.nvm_latest_api }}"
-    return_content: true
+    url: "{{ node.nvm_latest_url }}"
+    follow_redirects: none
+    status_code: 302
   register: nvm_latest
   when: not nvm_sh.stat.exists
   tags:
@@ -27,7 +29,7 @@
   ansible.builtin.import_tasks: common/install-script.yaml
   vars:
     installer_name: nvm
-    installer_url: "https://raw.githubusercontent.com/nvm-sh/nvm/{{ nvm_latest.json.tag_name }}/install.sh"
+    installer_url: "https://raw.githubusercontent.com/nvm-sh/nvm/{{ nvm_latest.location | basename }}/install.sh"
     installer_creates: "{{ ansible_facts.env.HOME }}/.nvm/nvm.sh"
     installer_env:
       PROFILE: /dev/null

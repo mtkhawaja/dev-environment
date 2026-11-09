@@ -4,8 +4,10 @@
 # Versions are NOT pinned: every tool installs the latest release available at
 # install time (package managers unpinned, `releases/latest/download/...` URLs,
 # or a "latest" lookup at runtime). Re-runs don't upgrade (idempotent `creates:`).
-# GitHub API "latest" lookups are anonymous (60 requests/hour), so they only run
-# when the tool isn't installed yet.
+# "Latest" lookups never use the GitHub REST API: anonymous calls are limited to
+# 60/hour per IP, which shared CI runners and NAT'd networks exhaust (it broke
+# the macOS CI job). They use GitHub web redirects, the npm registry, or vendor
+# indexes instead, and only run when the tool isn't installed yet.
 
 # Server installs without a desktop: `-e headless=true` (or HEADLESS=true for
 # setup.sh) skips GUI apps and desktop-only packages. Always test it with
@@ -148,12 +150,12 @@ apps:
 
 # jdtls (Eclipse JDT Language Server, Java LSP). macOS: Homebrew formula.
 # Debian: no apt package, so install the latest Eclipse milestone tarball
-# (arch-independent, pure Java): newest release tag from GitHub, then that
-# milestone's latest.txt names the tarball (its filename embeds a build timestamp).
+# (arch-independent, pure Java): newest version directory listed on Eclipse's
+# milestones index, then that milestone's latest.txt names the tarball (its
+# filename embeds a build timestamp).
 jdtls:
   brew_formulae:
     - jdtls
-  tags_api: "https://api.github.com/repos/eclipse-jdtls/eclipse.jdt.ls/tags?per_page=100"
   milestones_url: "https://download.eclipse.org/jdtls/milestones"
 
 neovim:
@@ -201,9 +203,9 @@ bitwarden:
   brew_formulae:
     - bitwarden-cli
   # Debian/WSL: no apt package; latest CLI release zip (single `bw` binary). The
-  # repo's GitHub "latest" release is the desktop app, so the newest cli-v* tag
-  # is looked up at install time (bw_version, set in bitwarden-cli.yaml).
-  releases_api: "https://api.github.com/repos/bitwarden/clients/releases?per_page=50"
+  # repo's GitHub "latest" release is the desktop app, so the CLI version comes
+  # from npm's @bitwarden/cli (published with each CLI release) at install time.
+  npm_latest_url: "https://registry.npmjs.org/@bitwarden/cli/latest"
   linux_asset: "bw-linux{{ '-arm64' if deb_arch == 'arm64' else '' }}-{{ bw_version }}.zip"
   linux_url: "https://github.com/bitwarden/clients/releases/download/cli-v{{ bw_version }}/{{ bitwarden.linux_asset }}"
 
@@ -241,8 +243,8 @@ yazi:
 sdkman_shell: "{{ '/bin/zsh' if ansible_facts.os_family == 'Darwin' else '/bin/bash' }}"
 
 node:
-  # nvm: latest release tag looked up at install time (js.yaml).
-  nvm_latest_api: "https://api.github.com/repos/nvm-sh/nvm/releases/latest"
+  # nvm: latest release tag read from GitHub's web redirect (js.yaml).
+  nvm_latest_url: "https://github.com/nvm-sh/nvm/releases/latest"
   node_version: "--lts"
 
 # tflint (Terraform linter). No Homebrew/apt package — both OSes install the

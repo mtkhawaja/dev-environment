@@ -80,9 +80,11 @@ Install the **latest release at install time**; do not pin versions. In order of
    whenever the asset name has no version in it (see `tflint`, `neovim.release_binaries`), or a vendor redirect
    endpoint (JetBrains Toolbox).
 3. A runtime "latest" lookup when the URL must contain the version: a vendor version endpoint (go.dev `VERSION`,
-   SonarQube `stable.version`) or the GitHub API (`releases/latest`, or tags + `community.general.version_sort`; see
-   `js.yaml`, `bitwarden-cli.yaml`, `java.yaml`). Gate lookups on the tool not being installed (anonymous GitHub API:
-   60 requests/hour).
+   SonarQube `stable.version`), GitHub's web redirect `https://github.com/<owner>/<repo>/releases/latest` (read the
+   tag from the `302` `location`; see `js.yaml`), a package registry (npm, see `bitwarden-cli.yaml`), or a vendor
+   index + `community.general.version_sort` (see `java.yaml`). Gate lookups on the tool not being installed.
+   **Do not use the GitHub REST API (`api.github.com`)**: anonymous calls are limited to 60/hour per IP, and shared CI
+   runners and NAT'd networks exhaust that (it broke the macOS CI job).
 
 Re-runs don't upgrade; `creates:` / stat guards keep them idempotent. Pin only if upstream offers no way to get the
 latest, and explain why in a comment.

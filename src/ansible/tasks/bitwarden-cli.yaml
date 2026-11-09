@@ -28,18 +28,15 @@
     - initial-setup
     - bitwarden
   block:
-    - name: "Look up Bitwarden releases (Debian)"
+    - name: "Look up the latest Bitwarden CLI version (Debian)"
       ansible.builtin.uri:
-        url: "{{ bitwarden.releases_api }}"
+        url: "{{ bitwarden.npm_latest_url }}"
         return_content: true
-      register: bw_releases
+      register: bw_npm_latest
 
-    # The repo also releases desktop/browser/web apps; take the newest CLI one.
-    - name: "Resolve the newest Bitwarden CLI release (Debian)"
+    - name: "Resolve the Bitwarden CLI version (Debian)"
       ansible.builtin.set_fact:
-        bw_version: >-
-          {{ bw_releases.json | rejectattr('prerelease') | map(attribute='tag_name')
-             | select('match', '^cli-v') | first | regex_replace('^cli-v', '') }}
+        bw_version: "{{ bw_npm_latest.json.version }}"
 
     - name: "Ensure bitwarden directories exist"
       ansible.builtin.file:
