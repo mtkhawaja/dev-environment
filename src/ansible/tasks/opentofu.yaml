@@ -54,6 +54,10 @@
   tags:
     - initial-setup
     - opentofu
+  register: opentofu_repo
+  retries: 3
+  delay: 30
+  until: opentofu_repo is succeeded
 
 - name: "Install OpenTofu (Debian)"
   become: true

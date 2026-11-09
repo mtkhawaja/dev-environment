@@ -19,6 +19,9 @@
   when: ansible_facts.os_family == "Debian"
   tags:
     - go
+  retries: 3
+  delay: 30
+  until: go_latest is succeeded
 
 - name: "Check the installed Go version (Debian)"
   ansible.builtin.command: /usr/local/go/bin/go env GOVERSION
@@ -55,6 +58,10 @@
         url: "https://go.dev/dl/{{ go_version }}.linux-{{ deb_arch }}.tar.gz"
         dest: "{{ go_download_dir.path }}/go.tar.gz"
         mode: '0644'
+      register: go_download
+      retries: 3
+      delay: 30
+      until: go_download is succeeded
 
     - name: "Remove the previous Go installation (Debian)"
       become: true

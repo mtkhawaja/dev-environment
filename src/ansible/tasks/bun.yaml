@@ -13,6 +13,8 @@
     installer_creates: "{{ ansible_facts.env.HOME }}/.bun/bin/bun"
     installer_env:
       PATH: "{{ ansible_facts.env.HOME }}/.bun/bin:{{ ansible_facts.env.PATH }}"
+    installer_reset_paths:
+      - "{{ ansible_facts.env.HOME }}/.bun"
   tags:
     - initial-setup
     - bun

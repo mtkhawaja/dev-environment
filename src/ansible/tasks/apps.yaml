@@ -122,6 +122,10 @@
     - initial-setup
     - apps
     - jetbrains-toolbox
+  register: toolbox_unarchive
+  retries: 3
+  delay: 30
+  until: toolbox_unarchive is succeeded
 
 - name: "Link JetBrains Toolbox onto PATH (Debian)"
   ansible.builtin.file:

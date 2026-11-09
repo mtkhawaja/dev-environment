@@ -33,7 +33,10 @@ Test a full run in a throwaway Ubuntu container (the safest way to validate end-
 ./run_docker.sh                                          # build + run interactive shell
 docker build --build-arg TAGS="--tags modern-cli" -t mtkhawaja/dev-env:latest .   # scope the in-image run
 docker build --build-arg TAGS="-e headless=true" -t mtkhawaja/dev-env:headless .   # headless/server flavor
+./.github/scripts/systemd-test.sh                        # headless + ssh-server/tailscale under real systemd (CI job linux-systemd)
 ```
+
+The test image deliberately mirrors a real server (`LANG=en_US.UTF-8`, password-protected sudo; password = username): passwordless sudo and an unset locale previously hid real bugs. Keep it that way.
 
 **A local full run mutates your real home directory** — `zsh.yaml` deletes and reinstalls `~/.oh-my-zsh`, and `dotfiles.yaml` force-resets `~/.dotfiles` to `origin/main` (unpushed dotfiles commits are discarded) and restows it. When testing changes, use Docker or a `--tags` scope rather than a bare local run.
 
@@ -57,6 +60,7 @@ docker build --build-arg TAGS="-e headless=true" -t mtkhawaja/dev-env:headless .
 - **Third-party apt repos must be added to `auto_updates.origins_patterns`** (usually `site=<repo host>`) or unattended-upgrades won't update their packages.
 - **sudo on Ubuntu 26.04 is sudo-rs.** ansible-core < 2.22 can't parse its password prompt, so `ansible_become_exe` (vars/main.yml) falls back to the bundled classic `/usr/bin/sudo.ws` there. Ansible can't reuse cached sudo credentials, so password-protected sudo needs `-K`; `setup.sh` instead asks once and passes the password via `--become-password-file` (0600 file in a private temp dir, removed on exit) unless sudo is passwordless.
 - **Use `systemd_running`** (not `ansible_facts.service_mgr`, which says "systemd" in plain containers) to guard tasks that start/reload units.
+- **Every network-dependent task retries** (`register` + `retries: 3`, `delay: 30`, `until: <result> is succeeded`): upstreams (GitHub, SDKMAN) have transient 5xx outages. Upstream install scripts go through `common/install-script.yaml`, which retries and clears `installer_reset_paths` (half-written dirs under `$HOME`) before each attempt.
 - **Per-OS config is centralized** in `src/ansible/vars/main.yml` — the macOS/Debian package + release-binary maps and download URLs. Add new cross-platform package data here rather than inlining it in tasks.
 - **Tool install patterns**, in rough order of preference: native package manager (`apt` / `community.general.homebrew`) → upstream `.deb` (yazi on Debian) → release tarball/zip via `unarchive` into `~/.local/bin` (already on PATH). Prefer apt even when it lags upstream a little. Release archives need per-asset `extra_opts` to normalize layout (`--strip-components=1`, `-j`); build URLs with `linux_arch`/`deb_arch` so arm64 works.
 - **No version pins.** Install the latest release at install time: unpinned package managers, `releases/latest/download/<asset>` URLs, or a "latest" lookup at runtime (go.dev `VERSION`, SonarQube `stable.version`, the `github.com/<repo>/releases/latest` web redirect for nvm, Eclipse's milestones index for jdtls) gated on the tool not being installed yet. **Never use the GitHub REST API (`api.github.com`)**: anonymous calls are limited to 60/hour per IP, which shared CI runners exhaust (it broke the macOS CI job). Re-runs don't upgrade (`creates:` / stat guards keep them idempotent). Pin only when upstream offers no way to get the latest, and say why in a comment.

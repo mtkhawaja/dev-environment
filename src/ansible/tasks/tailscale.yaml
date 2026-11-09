@@ -25,6 +25,10 @@
   when: ansible_facts.os_family == "Debian"
   tags:
     - tailscale
+  register: tailscale_repo
+  retries: 3
+  delay: 30
+  until: tailscale_repo is succeeded
 
 - name: "Install Tailscale (Debian)"
   become: true

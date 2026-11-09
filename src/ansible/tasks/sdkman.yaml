@@ -9,3 +9,5 @@
     installer_url: https://get.sdkman.io
     installer_creates: "{{ ansible_facts.env.HOME }}/.sdkman/bin/sdkman-init.sh"
     installer_shell: "{{ sdkman_shell }}"
+    installer_reset_paths:
+      - "{{ ansible_facts.env.HOME }}/.sdkman"

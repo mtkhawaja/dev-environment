@@ -43,6 +43,9 @@
         url: "{{ sonarqube_cli.base_url }}/stable.version"
         return_content: true
       register: sonar_stable
+      retries: 3
+      delay: 30
+      until: sonar_stable is succeeded
 
     - name: "Download the SonarQube CLI binary (Debian)"
       ansible.builtin.get_url:
@@ -51,3 +54,7 @@
         mode: '0755'
       vars:
         sonar_version: "{{ sonar_stable.content | trim }}"
+      register: sonar_download
+      retries: 3
+      delay: 30
+      until: sonar_download is succeeded

@@ -31,6 +31,10 @@
   tags:
     - initial-setup
     - tflint
+  register: tflint_unarchive
+  retries: 3
+  delay: 30
+  until: tflint_unarchive is succeeded
 
 - name: "Ensure tflint binary is executable"
   ansible.builtin.file:

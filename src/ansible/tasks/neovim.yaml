@@ -72,6 +72,10 @@
   tags:
     - initial-setup
     - nvim
+  register: nvim_release_binaries
+  retries: 3
+  delay: 30
+  until: nvim_release_binaries is succeeded
 
 - name: "Ensure Neovim tooling binaries are executable (Debian)"
   ansible.builtin.file:

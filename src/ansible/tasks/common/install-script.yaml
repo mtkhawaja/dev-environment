@@ -10,6 +10,13 @@
 #   installer_creates  path the installer produces
 #   installer_shell    interpreter (default: bash)
 #   installer_env      extra environment for the script (default: {})
+#   installer_reset_paths  paths under $HOME a failed attempt leaves half-written
+#                      and that make the installer refuse to run again (e.g.
+#                      ~/.sdkman: "SDKMAN found"); removed before each attempt
+#                      (default: [])
+#
+# Network steps retry (3 attempts, 30s apart) so a transient upstream failure
+# doesn't abort the run; a persistent failure still fails it.
 
 - name: "Check whether already installed: {{ installer_name }}"
   ansible.builtin.stat:
@@ -29,10 +36,37 @@
         url: "{{ installer_url }}"
         dest: "{{ installer_dir.path }}/install.sh"
         mode: '0700'
+      register: installer_download
+      retries: 3
+      delay: 30
+      until: installer_download is succeeded
 
+    # Guard the rm -rf below: every reset path must be strictly inside $HOME.
+    - name: "Check the reset paths are inside the home directory: {{ installer_name }}"
+      ansible.builtin.assert:
+        that:
+          - item is match('^' ~ (ansible_facts.env.HOME | regex_escape) ~ '/[^/]')
+          - "'..' not in item"
+        fail_msg: "installer_reset_paths entry {{ item }} is not inside {{ ansible_facts.env.HOME }}"
+        quiet: true
+      loop: "{{ installer_reset_paths | default([]) }}"
+
+    # Each attempt first clears what a failed attempt left behind (otherwise
+    # e.g. SDKMAN refuses to run again), then runs the installer.
     - name: "Run the installer: {{ installer_name }}"
-      ansible.builtin.command: "{{ installer_shell | default('bash') }} {{ installer_dir.path }}/install.sh"
+      ansible.builtin.shell: |
+        set -eu
+        {% for path in installer_reset_paths | default([]) %}
+        rm -rf -- {{ path | quote }}
+        {% endfor %}
+        {{ installer_shell | default('bash') }} {{ (installer_dir.path ~ '/install.sh') | quote }}
+      args:
+        executable: /bin/bash
       environment: "{{ installer_env | default({}) }}"
+      register: installer_run
+      retries: 3
+      delay: 30
+      until: installer_run is succeeded
       changed_when: true
 
   always:

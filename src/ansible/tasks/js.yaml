@@ -22,6 +22,9 @@
   tags:
     - initial-setup
     - js
+  retries: 3
+  delay: 30
+  until: nvm_latest is succeeded
 
 # PROFILE=/dev/null stops the nvm installer from editing rc files —
 # the NVM_DIR sourcing lines live in the dotfiles repo (.zshenv).
@@ -33,6 +36,8 @@
     installer_creates: "{{ ansible_facts.env.HOME }}/.nvm/nvm.sh"
     installer_env:
       PROFILE: /dev/null
+    installer_reset_paths:
+      - "{{ ansible_facts.env.HOME }}/.nvm"
   tags:
     - initial-setup
     - js

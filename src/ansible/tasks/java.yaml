@@ -59,6 +59,9 @@
         url: "{{ jdtls.milestones_url }}/"
         return_content: true
       register: jdtls_index
+      retries: 3
+      delay: 30
+      until: jdtls_index is succeeded
 
     - name: "Resolve the newest jdtls milestone (Debian)"
       ansible.builtin.set_fact:
@@ -71,6 +74,9 @@
         url: "{{ jdtls.milestones_url }}/{{ jdtls_version }}/latest.txt"
         return_content: true
       register: jdtls_latest_txt
+      retries: 3
+      delay: 30
+      until: jdtls_latest_txt is succeeded
 
     - name: "Create jdtls install directory (Debian)"
       ansible.builtin.file:
@@ -84,6 +90,10 @@
         dest: "{{ ansible_facts.env.HOME }}/.local/share/jdtls"
         remote_src: true
         creates: "{{ ansible_facts.env.HOME }}/.local/share/jdtls/bin/jdtls"
+      register: jdtls_unarchive
+      retries: 3
+      delay: 30
+      until: jdtls_unarchive is succeeded
 
 - name: "Ensure ~/.local/bin exists (Debian)"
   ansible.builtin.file:

@@ -35,6 +35,10 @@
   tags:
     - initial-setup
     - gh
+  register: gh_repo
+  retries: 3
+  delay: 30
+  until: gh_repo is succeeded
 
 - name: "Install GitHub CLI (Debian)"
   become: true

@@ -46,6 +46,8 @@
     installer_shell: sh
     installer_env:
       KEEP_ZSHRC: "yes"
+    installer_reset_paths:
+      - "{{ ansible_facts.env.HOME }}/.oh-my-zsh"
   tags:
     - oh-my-zsh-setup
 
@@ -58,6 +60,10 @@
     update: true
   tags:
     - oh-my-zsh-setup
+  register: zsh_autosuggestions_clone
+  retries: 3
+  delay: 30
+  until: zsh_autosuggestions_clone is succeeded
 
 - name: "Download zsh-syntax-highlighting plugin"
   ansible.builtin.git:
@@ -68,3 +74,7 @@
     update: true
   tags:
     - oh-my-zsh-setup
+  register: zsh_syntax_highlighting_clone
+  retries: 3
+  delay: 30
+  until: zsh_syntax_highlighting_clone is succeeded

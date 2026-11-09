@@ -39,6 +39,10 @@
   tags:
     - initial-setup
     - browser-testing
+  register: chrome_repo
+  retries: 3
+  delay: 30
+  until: chrome_repo is succeeded
 
 - name: "Install Chrome, fonts, and xvfb (Debian)"
   become: true

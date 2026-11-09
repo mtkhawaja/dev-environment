@@ -11,6 +11,10 @@
   when: ssh_authorized_keys | length > 0
   tags:
     - ssh-server
+  register: ssh_authorize_keys
+  retries: 3
+  delay: 30
+  until: ssh_authorize_keys is succeeded
 
 - name: "Read the authorized keys for {{ ssh.user }}"
   ansible.builtin.slurp:

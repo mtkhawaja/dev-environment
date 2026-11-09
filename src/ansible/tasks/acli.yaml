@@ -70,6 +70,10 @@
   tags:
     - initial-setup
     - acli
+  register: acli_repo
+  retries: 3
+  delay: 30
+  until: acli_repo is succeeded
 
 - name: "Install Atlassian CLI (Debian)"
   become: true

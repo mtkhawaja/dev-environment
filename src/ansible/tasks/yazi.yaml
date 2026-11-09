@@ -33,6 +33,10 @@
   when: ansible_facts.os_family == "Debian"
   tags:
     - yazi
+  register: yazi_deb
+  retries: 3
+  delay: 30
+  until: yazi_deb is succeeded
 
 # The pre-.deb install unzipped yazi/ya into ~/.local/bin, which shadows /usr/bin.
 - name: "Remove legacy Yazi release binaries (Debian)"

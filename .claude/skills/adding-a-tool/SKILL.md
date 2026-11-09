@@ -97,6 +97,7 @@ latest, and explain why in a comment.
 | Package data → `vars/main.yml`, not inline                        | Single source of truth the whole migration reuses.                           |
 | Clean up downloads (`.deb`, installers, temp) in a follow-up task | Matches existing tasks (`common/install-script.yaml`).                      |
 | Make tasks idempotent (`creates:`, `when: ... is changed`)        | The playbook is re-run often; second run must be a no-op.                    |
+| Network tasks retry (`retries: 3`, `delay: 30`, `until: ... is succeeded`) | Upstreams have transient 5xx outages; one blip must not abort the run. |
 | Tag everything                                                    | Enables `--tags <area>` scoped runs and Docker `TAGS`.                       |
 | Linux release URLs use `linux_arch` / `deb_arch`                  | Hosts may be x86_64 or arm64; never hardcode one arch.                       |
 | `ansible-lint` passes                                             | Blocking in CI; FQCNs; install scripts via `common/install-script.yaml`.     |

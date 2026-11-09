@@ -49,6 +49,10 @@
     force: true
   tags:
     - dotfiles
+  register: dotfiles_clone
+  retries: 3
+  delay: 30
+  until: dotfiles_clone is succeeded
 
 - name: "Stow dotfiles"
   ansible.builtin.command: ./setup.sh

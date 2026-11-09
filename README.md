@@ -149,7 +149,11 @@ The safest way to see a full Linux run without touching your own machine:
 ```bash
 docker build -t mtkhawaja/dev-env:latest . && docker run -it --rm mtkhawaja/dev-env:latest
 docker build --build-arg TAGS="-e headless=true" -t mtkhawaja/dev-env:headless .   # server / headless flavor
+./.github/scripts/systemd-test.sh   # headless run under real systemd + ssh-server.yaml/tailscale.yaml checks (as in CI)
 ```
+
+The image mirrors a real server: `LANG=en_US.UTF-8` and password-protected sudo (the user `mtkhawaja`'s password is
+`mtkhawaja`; it's a throwaway test image).
 
 On Windows (PowerShell):
 

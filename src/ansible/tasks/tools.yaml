@@ -118,3 +118,7 @@
     - initial-setup
     - cli-tools
     - tealdeer
+  register: tldr_update
+  retries: 3
+  delay: 30
+  until: tldr_update is succeeded
