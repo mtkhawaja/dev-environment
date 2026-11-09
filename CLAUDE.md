@@ -38,7 +38,7 @@ docker build --build-arg TAGS="-e headless=true" -t mtkhawaja/dev-env:headless .
 
 The test image deliberately mirrors a real server (`LANG=en_US.UTF-8`, password-protected sudo; password = username): passwordless sudo and an unset locale previously hid real bugs. Keep it that way.
 
-**A local full run mutates your real home directory** — `zsh.yaml` deletes and reinstalls `~/.oh-my-zsh`, and `dotfiles.yaml` force-resets `~/.dotfiles` to `origin/main` (unpushed dotfiles commits are discarded) and restows it. When testing changes, use Docker or a `--tags` scope rather than a bare local run.
+**A local full run mutates your real home directory** — `dotfiles.yaml` force-resets `~/.dotfiles` to `origin/main` (unpushed dotfiles commits are discarded) and restows it. When testing changes, use Docker or a `--tags` scope rather than a bare local run.
 
 `setup.sh` writes timestamped logs to `~/.ansible-dev-env-bootstrap/`.
 

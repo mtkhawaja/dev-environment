@@ -1,15 +1,6 @@
 ---
-# Reinstall oh-my-zsh from scratch. ~/.zshrc and ~/.zshenv are deliberately left
-# alone: they are dotfiles symlinks, and the dotfiles setup backs up any real
-# files before stowing. Deleting them here left the shell broken whenever stow
-# later failed.
-- name: "Remove existing oh-my-zsh install"
-  ansible.builtin.file:
-    path: "{{ ansible_facts.env.HOME }}/.oh-my-zsh"
-    state: absent
-  tags:
-    - cleanup-zsh-config
-
+# ~/.zshrc and ~/.zshenv are deliberately never touched here: they are dotfiles
+# symlinks, and the dotfiles setup backs up any real files before stowing.
 - name: "Check if zsh is installed"
   ansible.builtin.command: which zsh
   register: is_zsh_installed
@@ -36,13 +27,15 @@
   tags:
     - install-zsh
 
+# Installed once (oh-my-zsh updates itself); a broken install, i.e. a ~/.oh-my-zsh
+# without oh-my-zsh.sh, is cleared and reinstalled via installer_reset_paths.
 # KEEP_ZSHRC=yes: never replace an existing (stowed) ~/.zshrc with the template.
 - name: "Install oh-my-zsh"
   ansible.builtin.import_tasks: common/install-script.yaml
   vars:
     installer_name: oh-my-zsh
     installer_url: https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh
-    installer_creates: "{{ ansible_facts.env.HOME }}/.oh-my-zsh"
+    installer_creates: "{{ ansible_facts.env.HOME }}/.oh-my-zsh/oh-my-zsh.sh"
     installer_shell: sh
     installer_env:
       KEEP_ZSHRC: "yes"

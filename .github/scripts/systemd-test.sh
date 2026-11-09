@@ -26,7 +26,18 @@ run 'umask 077 && printf %s mtkhawaja > ~/.become-pass'
 PB='ansible-playbook -i localhost, --become-password-file ~/.become-pass'
 
 echo "::group::local.yaml (headless), first run";  run "$PB -e headless=true local.yaml";  echo "::endgroup::"
-echo "::group::local.yaml (headless), second run"; run "$PB -e headless=true local.yaml"; echo "::endgroup::"
+# The second run must be a no-op: a task that reports "changed" on every run is a
+# bug (non-idempotent), so fail and name the offenders.
+echo "::group::local.yaml (headless), second run (must be changed=0)"
+second="$(run "$PB -e headless=true local.yaml")"
+echo "$second"
+echo "::endgroup::"
+if ! grep -qE '^localhost +: .*changed=0 ' <<<"$second"; then
+  echo "FAIL: the second run changed something (not idempotent):"
+  grep -B3 -E '^changed:' <<<"$second" | grep -E '^TASK' || true
+  exit 1
+fi
+echo "ok: second run is idempotent (changed=0)"
 
 echo "::group::ssh-server.yaml"
 run 'ssh-keygen -q -t ed25519 -N "" -f ~/.ssh/ci_key'

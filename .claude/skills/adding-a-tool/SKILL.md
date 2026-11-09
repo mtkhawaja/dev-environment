@@ -107,14 +107,14 @@ latest, and explain why in a comment.
 ## Verification
 
 ```bash
-# Scoped local run (safe-ish) — NOT a bare full run (that reinstalls ~/.oh-my-zsh and force-resets ~/.dotfiles)
+# Scoped local run (safe-ish) — NOT a bare full run (that force-resets ~/.dotfiles and restows it)
 ansible-playbook -i localhost, local.yaml --tags <area>
 
 # Full end-to-end on a throwaway Ubuntu container
 docker build --build-arg TAGS="--tags <area>" -t mtkhawaja/dev-env:latest .
 ```
 
-A second run with the same tags must report `changed=0` (idempotent). To prove macOS works, run the scoped playbook on a
+A second run with the same tags must report `changed=0` (idempotent); CI's `linux-systemd` job fails otherwise. To prove macOS works, run the scoped playbook on a
 Mac — the Docker image only covers the Debian branch.
 
 ## Common mistakes

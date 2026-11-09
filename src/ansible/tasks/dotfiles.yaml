@@ -54,10 +54,28 @@
   delay: 30
   until: dotfiles_clone is succeeded
 
+# The dotfiles' setup.sh always restows, so its exit status can't say whether
+# anything changed. Record where every path the dotfiles packages manage points
+# ($HOME/<path> for each <package>/<path> file in the repo) before and after,
+# and report a change only if one of them moved.
 - name: "Stow dotfiles"
-  ansible.builtin.command: ./setup.sh
+  ansible.builtin.shell: |
+    set -euo pipefail
+    link_state() {
+      find . -mindepth 2 \( -name .git -prune \) -o \( -type f -o -type l \) -print |
+        while IFS= read -r f; do
+          target="$HOME/${f#./*/}"
+          printf '%s\t%s\n' "$target" "$(realpath "$target" 2>/dev/null || echo missing)"
+        done | LC_ALL=C sort
+    }
+    before="$(link_state)"
+    ./setup.sh
+    after="$(link_state)"
+    if [ "$before" != "$after" ]; then echo "DOTFILES_LINKS_CHANGED"; fi
   args:
     chdir: "{{ ansible_facts.env.HOME }}/.dotfiles"
-  changed_when: true
+    executable: /bin/bash
+  register: stow_dotfiles
+  changed_when: "'DOTFILES_LINKS_CHANGED' in stow_dotfiles.stdout"
   tags:
     - dotfiles

@@ -18,7 +18,7 @@ Versions are never pinned: every tool installs the latest release available at i
 
 ## Set up a machine
 
-> **Warning:** A full run modifies your home directory. It reinstalls `~/.oh-my-zsh`, force-resets `~/.dotfiles` to
+> **Warning:** A full run modifies your home directory. It installs `~/.oh-my-zsh` (once), force-resets `~/.dotfiles` to
 > `origin/main` of the [dotfiles repo](https://github.com/mtkhawaja/dotfiles) (push any local dotfiles commits first),
 > and stows them over `~/.zshrc`, `~/.zshenv` and friends. Try it in the Docker container first.
 
