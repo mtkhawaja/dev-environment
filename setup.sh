@@ -114,7 +114,10 @@ if [[ -n "${HEADLESS:-}" ]]; then
 fi
 
 log "INFO" "Running ansible-pull to configure the system"
-ansible-pull -U "$REPO_URL" -i localhost, "${BECOME_ARGS[@]}" "${EXTRA_VARS[@]}" local.yaml || {
+# ansible-pull relays the playbook's output via sys.stdout.buffer without
+# flushing, so it shows up in ~8KB bursts and the run looks stuck. Unbuffered
+# Python streams it live.
+PYTHONUNBUFFERED=1 ansible-pull -U "$REPO_URL" -i localhost, "${BECOME_ARGS[@]}" "${EXTRA_VARS[@]}" local.yaml || {
   log "ERROR" "ansible-pull failed"
   exit 1
 }

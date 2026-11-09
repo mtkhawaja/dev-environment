@@ -123,7 +123,8 @@ the Tailscale admin console.
 ### Without `setup.sh`
 
 With Ansible already installed, run the playbook from GitHub (`ansible-pull`) or from a checkout (`ansible-playbook`,
-which uses your local changes). `-K` asks for your sudo password up front on Linux; macOS doesn't need it.
+which uses your local changes). `ansible-pull` buffers the playbook's output, so it can look stuck for a while; prefix
+it with `PYTHONUNBUFFERED=1` to see progress live (`setup.sh` does). `-K` asks for your sudo password up front on Linux; macOS doesn't need it.
 
 ```bash
 ansible-galaxy collection install -r requirements.yml   # one-time: community.general
