@@ -31,8 +31,8 @@
       ansible.builtin.import_tasks: src/ansible/tasks/js.yaml
     - name: Bun
       ansible.builtin.import_tasks: src/ansible/tasks/bun.yaml
-    - name: Bitwarden CLI
-      ansible.builtin.import_tasks: src/ansible/tasks/bitwarden-cli.yaml
+    - name: Bitwarden
+      ansible.builtin.import_tasks: src/ansible/tasks/bitwarden.yaml
     - name: Python
       ansible.builtin.import_tasks: src/ansible/tasks/python.yaml
     - name: Yazi

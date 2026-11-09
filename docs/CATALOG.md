@@ -195,11 +195,11 @@ Ubuntu's AppArmor profile for `/opt/google/chrome/chrome` lets the sandbox work 
 
 ## Secrets & signing
 
-*(`bitwarden-cli.yaml`, `pre_tasks.yaml`)*
+*(`bitwarden.yaml`, `pre_tasks.yaml`)*
 
 | Tool | What it is | Why it's useful |
 |------|------------|-----------------|
-| **Bitwarden CLI** (`bw`) | Password-manager CLI | Retrieve secrets/credentials from Bitwarden in scripts and the terminal. |
+| **Bitwarden** (desktop app) | Password manager | Vault, autofill, and the SSH agent. Linux desktops: official snap (amd64/arm64, auto-updating; skipped when `headless`). macOS: not managed; install the Mac App Store build yourself (the dotfiles' SSH-agent setup expects it). The snap is skipped inside containers (snapd can't run there). The old Bitwarden CLI is removed. |
 | **GnuPG** (`gpg`) | OpenPGP encryption/signing | Encrypt/sign files and git commits/tags. Installed on both OSes; on macOS it's paired with **pinentry-mac** for a native passphrase dialog (the dotfiles' gpg-agent points at it). |
 
 ## Media & file inspection

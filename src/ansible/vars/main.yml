@@ -199,15 +199,18 @@ awscli:
   apt_packages:
     - awscli
 
+# True inside Docker/Podman/LXC. snapd can't run in containers (no squashfs
+# mounts / AppArmor), so snap installs are skipped there (e.g. the Docker CI build).
+in_container: "{{ 'container' in (ansible_facts.virtualization_tech_guest | default([])) }}"
+
+# Bitwarden desktop app. Linux desktops: official snap (amd64 + arm64,
+# auto-refreshed; skipped in containers). macOS: not managed (App Store build).
+# The CLI is no longer installed; legacy_brew_formulae is removed on macOS.
 bitwarden:
-  brew_formulae:
+  snaps:
+    - bitwarden
+  legacy_brew_formulae:
     - bitwarden-cli
-  # Debian/WSL: no apt package; latest CLI release zip (single `bw` binary). The
-  # repo's GitHub "latest" release is the desktop app, so the CLI version comes
-  # from npm's @bitwarden/cli (published with each CLI release) at install time.
-  npm_latest_url: "https://registry.npmjs.org/@bitwarden/cli/latest"
-  linux_asset: "bw-linux{{ '-arm64' if deb_arch == 'arm64' else '' }}-{{ bw_version }}.zip"
-  linux_url: "https://github.com/bitwarden/clients/releases/download/cli-v{{ bw_version }}/{{ bitwarden.linux_asset }}"
 
 yazi:
   # Debian/WSL: no Ubuntu package; upstream ships a .deb per arch (tracks latest).

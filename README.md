@@ -30,7 +30,7 @@ so installers can prompt for your password. Logs go to `~/.ansible-dev-env-boots
 | | macOS | Linux desktop | Linux server / headless |
 |---|---|---|---|
 | CLI tools, shell, dotfiles, editors, runtimes | ✅ | ✅ | ✅ |
-| GUI apps (Ghostty, VLC, JetBrains Toolbox; AeroSpace and bloom on macOS) | ✅ | ✅ | — |
+| GUI apps (Ghostty, VLC, JetBrains Toolbox; AeroSpace and bloom on macOS; Bitwarden snap on Linux) | ✅ | ✅ | — |
 | Desktop-only packages (`fonts-powerline`) | n/a | ✅ | — |
 | Headless browser testing (Google Chrome, fonts, `xvfb`) | — (not managed) | ✅ | ✅ |
 | Automatic updates + reboots when needed (04:00) | — (not managed) | ✅ | ✅ |

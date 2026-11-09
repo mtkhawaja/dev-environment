@@ -1,0 +1,84 @@
+---
+# Bitwarden desktop app.
+#   Debian -> official snap (amd64 + arm64, auto-refreshed by snapd); desktop
+#             only, skipped when headless and in containers (snapd can't run
+#             there). Bitwarden's .deb/AppImage are x86_64-only.
+#   macOS  -> intentionally not managed: the Mac App Store build is installed by
+#             hand, and the dotfiles' SSH-agent setup depends on its sandbox path
+#             (~/Library/Containers/com.bitwarden.desktop), which the Homebrew
+#             cask build doesn't use.
+# The Bitwarden CLI (bw) is no longer installed; older runs' copies are removed.
+
+- name: "Remove the legacy Bitwarden CLI (Debian)"
+  ansible.builtin.file:
+    path: "{{ ansible_facts.env.HOME }}/.local/bin/tools/bitwarden"
+    state: absent
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - initial-setup
+    - cleanup
+    - bitwarden
+
+- name: "Remove the legacy Bitwarden CLI (macOS)"
+  community.general.homebrew:
+    name: "{{ bitwarden.legacy_brew_formulae }}"
+    state: absent
+  when: ansible_facts.os_family == "Darwin"
+  tags:
+    - initial-setup
+    - cleanup
+    - bitwarden
+
+- name: "Ensure snapd is present (Debian, desktop)"
+  become: true
+  ansible.builtin.apt:
+    name: snapd
+    state: present
+  when: ansible_facts.os_family == "Debian" and not (headless | bool) and not (in_container | bool)
+  tags:
+    - initial-setup
+    - bitwarden
+
+# Installing snapd enables but doesn't always start its socket, and snaps can't
+# be installed until snapd has finished seeding.
+- name: "Start snapd (Debian, desktop)"
+  become: true
+  ansible.builtin.systemd_service:
+    name: snapd.socket
+    enabled: true
+    state: started
+  when:
+    - ansible_facts.os_family == "Debian"
+    - not (headless | bool)
+    - not (in_container | bool)
+    - ansible_facts.service_mgr == "systemd"
+  tags:
+    - initial-setup
+    - bitwarden
+
+- name: "Wait for snapd to finish seeding (Debian, desktop)"
+  become: true
+  ansible.builtin.command: snap wait system seed.loaded
+  changed_when: false
+  when: ansible_facts.os_family == "Debian" and not (headless | bool) and not (in_container | bool)
+  tags:
+    - initial-setup
+    - bitwarden
+
+- name: "Install the Bitwarden desktop app (Debian, desktop)"
+  become: true
+  community.general.snap:
+    name: "{{ bitwarden.snaps }}"
+    state: present
+  when: ansible_facts.os_family == "Debian" and not (headless | bool) and not (in_container | bool)
+  tags:
+    - initial-setup
+    - bitwarden
+
+- name: "Explain why the Bitwarden snap was skipped (container)"
+  ansible.builtin.debug:
+    msg: "Running in a container, where snapd can't run: the Bitwarden snap was not installed."
+  when: ansible_facts.os_family == "Debian" and not (headless | bool) and (in_container | bool)
+  tags:
+    - initial-setup
+    - bitwarden

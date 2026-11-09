@@ -81,7 +81,7 @@ Install the **latest release at install time**; do not pin versions. In order of
    endpoint (JetBrains Toolbox).
 3. A runtime "latest" lookup when the URL must contain the version: a vendor version endpoint (go.dev `VERSION`,
    SonarQube `stable.version`), GitHub's web redirect `https://github.com/<owner>/<repo>/releases/latest` (read the
-   tag from the `302` `location`; see `js.yaml`), a package registry (npm, see `bitwarden-cli.yaml`), or a vendor
+   tag from the `302` `location`; see `js.yaml`), a package registry (e.g. npm `https://registry.npmjs.org/<pkg>/latest`), or a vendor
    index + `community.general.version_sort` (see `java.yaml`). Gate lookups on the tool not being installed.
    **Do not use the GitHub REST API (`api.github.com`)**: anonymous calls are limited to 60/hour per IP, and shared CI
    runners and NAT'd networks exhaust that (it broke the macOS CI job).
