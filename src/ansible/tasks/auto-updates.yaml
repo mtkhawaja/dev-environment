@@ -59,7 +59,7 @@
     - apt-daily-upgrade.timer
   when:
     - ansible_facts.os_family == "Debian"
-    - ansible_facts.service_mgr == "systemd"
+    - systemd_running | bool
   tags:
     - initial-setup
     - auto-updates

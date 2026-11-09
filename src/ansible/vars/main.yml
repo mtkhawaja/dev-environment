@@ -199,6 +199,11 @@ awscli:
   apt_packages:
     - awscli
 
+# True only when systemd is actually running as init (the same check as
+# sd_booted()). Ansible's service_mgr fact reports "systemd" in plain containers
+# too, where reloading or starting units fails. Controller == target here.
+systemd_running: "{{ '/run/systemd/system' is directory }}"
+
 # True inside Docker/Podman/LXC. snapd can't run in containers (no squashfs
 # mounts / AppArmor), so snap installs are skipped there (e.g. the Docker CI build).
 in_container: "{{ 'container' in (ansible_facts.virtualization_tech_guest | default([])) }}"
@@ -345,3 +350,9 @@ auto_updates:
     - "site=packages.opentofu.org"      # OpenTofu
     - "site=pkgs.tailscale.com"         # Tailscale (opt-in)
   config_file: /etc/apt/apt.conf.d/52dev-env-auto-updates
+
+# Headless Linux (e.g. a laptop used as a server): ignore the lid switch so
+# closing the lid never suspends or shuts the machine down. Harmless on hosts
+# without a lid; desktops keep Ubuntu's default (suspend on lid close).
+power:
+  logind_dropin: /etc/systemd/logind.conf.d/10-dev-env-lid.conf

@@ -91,7 +91,7 @@
         - "{{ ssh.server_unit }}"
         - ssh.service
       failed_when: false
-      when: ansible_facts.service_mgr == "systemd"
+      when: systemd_running | bool
 
     - name: "Stop: the OpenSSH server could not be installed or validated"
       ansible.builtin.fail:
@@ -106,7 +106,7 @@
     name: "{{ ssh.server_unit }}"
     enabled: true
     state: started
-  when: ansible_facts.service_mgr == "systemd"
+  when: systemd_running | bool
   tags:
     - ssh-server
 
@@ -116,7 +116,7 @@
   ansible.builtin.systemd_service:
     name: ssh.service
   register: sshd_unit
-  when: ansible_facts.service_mgr == "systemd"
+  when: systemd_running | bool
   tags:
     - ssh-server
 
@@ -126,7 +126,7 @@
     name: ssh.service
     state: reloaded
   when:
-    - ansible_facts.service_mgr == "systemd"
+    - systemd_running | bool
     - ssh_hardening is changed
     - sshd_unit.status.ActiveState == "active"
   tags:

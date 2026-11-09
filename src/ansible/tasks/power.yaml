@@ -1,0 +1,55 @@
+---
+# Lid-close behaviour for headless Linux (laptops used as servers).
+#   Debian, headless -> systemd-logind ignores the lid switch (on battery, on
+#                       external power, and docked), applied with a reload
+#   Debian, desktop  -> untouched (Ubuntu default: suspend on lid close)
+#   macOS            -> not managed
+
+- name: "Create the logind drop-in directory (Debian, headless)"
+  become: true
+  ansible.builtin.file:
+    path: "{{ power.logind_dropin | dirname }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  when: ansible_facts.os_family == "Debian" and headless | bool
+  tags:
+    - initial-setup
+    - power
+
+- name: "Ignore the laptop lid switch (Debian, headless)"
+  become: true
+  ansible.builtin.copy:
+    dest: "{{ power.logind_dropin }}"
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      # Managed by dev-environment (power.yaml): headless machine, so closing
+      # the lid must not suspend or power it off.
+      [Login]
+      HandleLidSwitch=ignore
+      HandleLidSwitchExternalPower=ignore
+      HandleLidSwitchDocked=ignore
+  register: lid_dropin
+  when: ansible_facts.os_family == "Debian" and headless | bool
+  tags:
+    - initial-setup
+    - power
+
+# logind is Type=notify-reload, so a reload applies the change without ending
+# existing sessions (a restart could).
+- name: "Reload systemd-logind (Debian, headless)"
+  become: true
+  ansible.builtin.systemd_service:
+    name: systemd-logind
+    state: reloaded
+  when:
+    - ansible_facts.os_family == "Debian"
+    - headless | bool
+    - lid_dropin is changed
+    - systemd_running | bool
+  tags:
+    - initial-setup
+    - power

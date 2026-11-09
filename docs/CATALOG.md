@@ -176,6 +176,14 @@ Ubuntu's AppArmor profile for `/opt/google/chrome/chrome` lets the sandbox work 
 |------|------------|-----------------|
 | **unattended-upgrades** | Automatic apt updates | Daily: Ubuntu security + regular updates, plus the third-party repos this playbook adds (Chrome, GitHub CLI, Atlassian CLI, OpenTofu, Tailscale, Ansible PPA). Reboots automatically only when an update requires it, at 04:00 local time (`auto_updates.reboot_time`), even with users logged in. Unused kernels and dependencies are cleaned up. |
 
+## Lid close on headless laptops (Linux only)
+
+*(`power.yaml`)* — headless only.
+
+| Setting | What it is | Why it's useful |
+|---------|------------|-----------------|
+| **logind `HandleLidSwitch*=ignore`** | systemd-logind drop-in | A laptop running as a server keeps running with the lid closed (on battery, external power, or docked). Applied with a logind reload, no reboot. Harmless on machines without a lid; desktops keep Ubuntu's default (suspend). |
+
 ## SSH
 
 *(`ssh.yaml`; server: `ssh-server.yaml`)* — Linux only.

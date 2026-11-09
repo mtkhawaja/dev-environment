@@ -34,6 +34,7 @@ so installers can prompt for your password. Logs go to `~/.ansible-dev-env-boots
 | Desktop-only packages (`fonts-powerline`) | n/a | ✅ | — |
 | Headless browser testing (Google Chrome, fonts, `xvfb`) | — (not managed) | ✅ | ✅ |
 | Automatic updates + reboots when needed (04:00) | — (not managed) | ✅ | ✅ |
+| Closing a laptop lid doesn't suspend / power off | — | — (Ubuntu default) | ✅ |
 | OpenSSH client | built in | ✅ | ✅ |
 | OpenSSH server, hardened (opt-in: `ssh-server.yaml`) | — (never) | opt-in | opt-in |
 
@@ -64,7 +65,8 @@ curl -fsSL https://raw.githubusercontent.com/mtkhawaja/dev-environment/main/setu
 curl -fsSL https://raw.githubusercontent.com/mtkhawaja/dev-environment/main/setup.sh -o setup.sh && sudo -v && HEADLESS=true bash setup.sh
 ```
 
-- `HEADLESS=true` skips GUI apps (Ghostty, VLC, JetBrains Toolbox) and desktop-only packages (`fonts-powerline`).
+- `HEADLESS=true` skips GUI apps (Ghostty, VLC, JetBrains Toolbox) and desktop-only packages (`fonts-powerline`), and
+  makes systemd-logind ignore the lid switch, so a laptop used as a server keeps running with its lid closed.
   `xclip` isn't installed directly, but Neovim and Yazi still pull it in as a recommended package (harmless: Chrome
   brings the same X11 libraries).
 - Still sets up headless, Chrome-based Playwright and Selenium tests: Google Chrome stable (which brings the shared

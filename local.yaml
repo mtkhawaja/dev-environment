@@ -13,6 +13,8 @@
   tasks:
     - name: Automatic updates (Linux)
       ansible.builtin.import_tasks: src/ansible/tasks/auto-updates.yaml
+    - name: Lid close (headless Linux)
+      ansible.builtin.import_tasks: src/ansible/tasks/power.yaml
     - name: SSH
       ansible.builtin.import_tasks: src/ansible/tasks/ssh.yaml
     - name: Zsh + oh-my-zsh
