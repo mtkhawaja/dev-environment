@@ -4,7 +4,8 @@
 #   ansible-playbook -i localhost, -K tailscale.yaml
 #   ansible-pull -U https://github.com/mtkhawaja/dev-environment.git -i localhost, -K tailscale.yaml
 #
-# Set TS_AUTHKEY in the environment to join the tailnet automatically;
+# Set TS_AUTHKEY in the environment to join the tailnet automatically (read it
+# with `read -rs TS_AUTHKEY && export TS_AUTHKEY` to keep it out of shell history);
 # otherwise run `sudo tailscale up` afterwards. (Or include it in a normal run
 # with `-e tailscale=true`.)
 - name: Install Tailscale

@@ -64,7 +64,7 @@
   when:
     - ansible_facts.os_family == "Debian"
     - tailscale_authkey | length > 0
-    - (tailscale_status.stdout | default('{}') | from_json).BackendState | default('') != 'Running'
+    - (tailscale_status.stdout | default('{}', true) | from_json).BackendState | default('') != 'Running'
   tags:
     - tailscale
   block:
@@ -104,6 +104,6 @@
   when:
     - ansible_facts.os_family == "Debian"
     - tailscale_authkey | length == 0
-    - (tailscale_status.stdout | default('{}') | from_json).BackendState | default('') != 'Running'
+    - (tailscale_status.stdout | default('{}', true) | from_json).BackendState | default('') != 'Running'
   tags:
     - tailscale

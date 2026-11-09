@@ -110,9 +110,16 @@ ansible-playbook -i localhost, -K -e tailscale=true local.yaml                  
 ```
 
 It adds Tailscale's official apt repo, installs `tailscale`, and enables `tailscaled`. To join your tailnet
-automatically, export an auth key first (`export TS_AUTHKEY=tskey-auth-...`; it's read from the environment and never
-logged); otherwise run `sudo tailscale up` afterwards. Extra `tailscale up` flags go in
-`-e tailscale_up_args="--ssh --advertise-tags=tag:server"`.
+automatically, put an auth key in `TS_AUTHKEY` first. Read it without echoing so it stays out of your shell history and
+scrollback, rather than typing `export TS_AUTHKEY=tskey-...`:
+
+```bash
+read -rs TS_AUTHKEY && export TS_AUTHKEY   # paste the key, press Enter
+```
+
+The playbook never logs it or puts it on a command line. Without a key, run `sudo tailscale up` afterwards. Extra
+`tailscale up` flags go in `-e tailscale_up_args="--ssh --advertise-tags=tag:server"`. If a key ever leaks, revoke it in
+the Tailscale admin console.
 
 ### Without `setup.sh`
 
