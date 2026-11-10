@@ -19,6 +19,17 @@ jobs:
       - name: Ansible lint
         run: ansible-lint
 
+  linux-systemd:
+    # Headless Ubuntu 26.04 under real systemd with password-protected sudo:
+    # covers what the docker-build job can't (units, sshd, tailscaled, logind),
+    # and fails if a second run isn't a no-op (changed=0).
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+      - name: Run the playbooks under systemd
+        run: ./.github/scripts/systemd-test.sh
+
   macos:
     runs-on: macos-26          # Apple Silicon (arm64) — the target arch
     timeout-minutes: 45
