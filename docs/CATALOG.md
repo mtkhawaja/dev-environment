@@ -102,7 +102,7 @@ upgrade (self-updating tools such as JetBrains Toolbox, SonarQube CLI and Claude
 | Tool                  | What it is            | Why it's useful                                                       |
 |-----------------------|-----------------------|-----------------------------------------------------------------------|
 | **SDKMAN**            | SDK version manager   | Installs and switches JVM SDKs/tools; cross-platform (curl-based).    |
-| **Java 21 (Temurin)** | LTS JDK               | Long-term-support JDK for building/running JVM apps.                  |
+| **Java 25 (Temurin)** | LTS JDK (default)     | Latest Temurin JDK 25 build via SDKMAN, set as the default (`java.major`/`java.vendor`). Older JDKs stay installed. |
 | **Maven**             | Build/dependency tool | Standard build lifecycle and dependency management for Java projects. |
 | **Gradle**            | Build tool            | Flexible, incremental builds for JVM (and other) projects.            |
 
@@ -111,7 +111,7 @@ upgrade (self-updating tools such as JetBrains Toolbox, SonarQube CLI and Claude
 | Tool | What it is | Why it's useful |
 |------|------------|-----------------|
 | **nvm** | Node version manager | Install and switch between Node.js versions per project; curl-installed, cross-platform. |
-| **Node.js** *(LTS via nvm)* | JS runtime | Run JavaScript/TypeScript tooling and servers; ships with `npm`. The LTS is installed and set as the nvm default. |
+| **Node.js** *(via nvm)* | JS runtime | Run JavaScript/TypeScript tooling and servers; ships with `npm`. The newest release of `node.version` (26) is installed and set as the nvm default. |
 | **Bun** | JS runtime + toolkit | Fast all-in-one runtime, package manager, bundler, and test runner; drop-in `npm`/`node` alternative. Installed to `~/.bun`. |
 
 ### Python *(`python.yaml`)*
@@ -119,7 +119,7 @@ upgrade (self-updating tools such as JetBrains Toolbox, SonarQube CLI and Claude
 | Tool | What it is | Why it's useful |
 |------|------------|-----------------|
 | **uv** | Python package/version manager | Astral's fast all-in-one tool: installs interpreters and CLI tools, downloads prebuilt standalone Pythons (no system build deps). Replaces pyenv + pipx. |
-| **Python 3.13 & 3.12** | Interpreters | Installed via uv; 3.13 is the default `python`/`python3` on `PATH`, 3.12 available alongside. |
+| **Python 3.15** | Interpreter | Latest 3.15 release via uv, set as the default `python`/`python3` on `PATH`. Other versions are fetched by uv on demand per project. |
 | **ruff** | Linter & formatter | Astral's fast all-in-one linter + formatter; replaces black and pylint. Installed as a `uv tool`. |
 | **mypy** | Static type checker | Catches type errors before runtime. Installed as a `uv tool`. |
 

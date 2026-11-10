@@ -157,6 +157,11 @@ apps:
   # self-installs and self-updates on first launch.
   jetbrains_toolbox_url: "https://data.services.jetbrains.com/products/download?code=TBA&platform={{ 'linuxARM64' if deb_arch == 'arm64' else 'linux' }}"
 
+# Default JDK via SDKMAN: the latest build in this series (e.g. 25.0.5.0+8-tem).
+java:
+  major: "25"
+  vendor: tem
+
 # jdtls (Eclipse JDT Language Server, Java LSP). macOS: Homebrew formula.
 # Debian: no apt package, so install the latest Eclipse milestone tarball
 # (arch-independent, pure Java): newest version directory listed on Eclipse's
@@ -249,8 +254,10 @@ yazi:
     - zoxide
     - imagemagick
 
-# Python is managed by uv (Astral), which downloads prebuilt standalone Pythons —
-# no system build dependencies needed, so there's no python: package data here.
+# Default Python via uv (prebuilt standalone builds): the latest release in this
+# series, as the default `python`/`python3` in ~/.local/bin.
+python:
+  version: "3.15"
 
 # Shell used to run the SDKMAN installer and `sdk` commands. macOS ships only
 # bash 3.2, and SDKMAN's installer hard-requires bash 4+ — BUT that check is
@@ -262,7 +269,8 @@ sdkman_shell: "{{ '/bin/zsh' if ansible_facts.os_family == 'Darwin' else '/bin/b
 node:
   # nvm: latest release tag read from GitHub's web redirect (js.yaml).
   nvm_latest_url: "https://github.com/nvm-sh/nvm/releases/latest"
-  node_version: "--lts"
+  # Default Node major version; nvm installs its newest release (e.g. 26.x).
+  version: "26"
 
 # tflint (Terraform linter). No Homebrew/apt package — both OSes install the
 # latest upstream release zip (arm64 or amd64) into ~/.local/bin.

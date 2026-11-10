@@ -1,13 +1,22 @@
 ---
 # Java installation via SDKMAN
 
-- name: "Install Java 21 (LTS) via SDKMAN"
-  ansible.builtin.shell: |
-    source {{ ansible_facts.env.HOME }}/.sdkman/bin/sdkman-init.sh && sdk install java 21-tem
-  args:
+# Default JDK: the latest build in the java.major series from java.vendor, e.g.
+# 25.0.5.0+8-tem (not SDKMAN's "25-tem", which is the original GA build).
+- name: "Install the latest JDK and make it the default: {{ java.major }}"
+  ansible.builtin.shell:
+    cmd: |
+      set -eo pipefail
+      source "$HOME/.sdkman/bin/sdkman-init.sh"
+      v="$(sdk list java | grep -oE '{{ java.major }}\.[0-9.+]+-{{ java.vendor }}' | sort -uV | tail -n 1)"
+      sdkman_auto_answer=true sdk install java "$v"
+      sdk default java "$v"
     executable: "{{ sdkman_shell }}"
-  register: java_install_result
-  changed_when: "'is already installed' not in java_install_result.stdout"
+  register: java_default
+  changed_when: "'is already installed' not in java_default.stdout"
+  retries: 3
+  delay: 30
+  until: java_default is succeeded
   tags:
     - java
     - sdkman

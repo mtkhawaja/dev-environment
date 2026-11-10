@@ -42,17 +42,19 @@
     - initial-setup
     - js
 
-- name: "Install Node via nvm and set the default alias: {{ node.node_version }}"
-  ansible.builtin.shell: |
-    export NVM_DIR="$HOME/.nvm"
-    . "$NVM_DIR/nvm.sh"
-    nvm install {{ node.node_version }}
-    # `--lts` is an install-only flag; the default alias must be a version
-    # target. 'lts/*' = the latest LTS line, matching the --lts install above.
-    nvm alias default 'lts/*'
-  args:
+# Default Node: the newest release of node.version (nvm resolves the major).
+- name: "Install Node and make it the default: {{ node.version }}"
+  ansible.builtin.shell:
+    cmd: |
+      . "$HOME/.nvm/nvm.sh"
+      nvm install {{ node.version }}
+      nvm alias default {{ node.version }}
     executable: /bin/bash
-    creates: "{{ ansible_facts.env.HOME }}/.nvm/alias/default"
+  register: node_default
+  changed_when: "'is already installed' not in (node_default.stdout + node_default.stderr)"
+  retries: 3
+  delay: 30
+  until: node_default is succeeded
   tags:
     - initial-setup
     - js

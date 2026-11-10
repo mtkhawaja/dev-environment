@@ -18,18 +18,26 @@
     - python
     - uv
 
-- name: "Install Python versions via uv (3.13, 3.12)"
-  ansible.builtin.command: "{{ ansible_facts.env.HOME }}/.local/bin/uv python install 3.13 3.12"
-  register: uv_python_install
-  changed_when: "'Installed' in uv_python_install.stdout"
+# Default Python: the latest python.version patch release via uv. uv is updated
+# first so it always knows the newest releases.
+- name: "Update uv"
+  ansible.builtin.command: "{{ ansible_facts.env.HOME }}/.local/bin/uv self update"
+  register: uv_self_update
+  changed_when: "'Upgraded' in uv_self_update.stderr"
+  retries: 3
+  delay: 30
+  until: uv_self_update is succeeded
   tags:
     - initial-setup
     - python
 
-- name: "Set the default python (3.13) on PATH via uv"
-  ansible.builtin.command: "{{ ansible_facts.env.HOME }}/.local/bin/uv python install --default 3.13"
-  args:
-    creates: "{{ ansible_facts.env.HOME }}/.local/bin/python"
+- name: "Install the latest Python and make it the default: {{ python.version }}"
+  ansible.builtin.command: "{{ ansible_facts.env.HOME }}/.local/bin/uv python install --default {{ python.version }}"
+  register: python_default
+  changed_when: "'Installed' in python_default.stderr"
+  retries: 3
+  delay: 30
+  until: python_default is succeeded
   tags:
     - initial-setup
     - python
